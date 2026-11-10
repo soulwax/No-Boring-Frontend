@@ -23,6 +23,7 @@
           <span>{{ i18n.t().live.reconnecting }}</span>
         }
       </span>
+      <app-account-menu />
       <app-lang-switch />
       <button type="button" class="btn btn-ghost icon-btn" (click)="scheme.toggle()"
         [attr.aria-label]="i18n.t().theme(scheme.theme() === 'dark' ? 'light' : 'dark')">
@@ -50,5 +51,8 @@
   </p>
 </footer>
 
-<app-toasts />
-<app-chaos-wave />
+<!-- Nothing to show until something happens: both load after the page is idle, in their own chunks -->
+@defer (on idle) {
+  <app-toasts />
+  <app-chaos-wave />
+}

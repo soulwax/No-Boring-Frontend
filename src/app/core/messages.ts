@@ -17,6 +17,12 @@ const de = {
   theme: (next: 'light' | 'dark'): string => (next === 'light' ? 'Zum hellen Design wechseln' : 'Zum dunklen Design wechseln'),
   lang: { label: 'Sprache' },
   source: 'Quellcode auf GitHub',
+  account: {
+    signIn: 'Mit GitHub anmelden',
+    signInShort: 'Anmelden',
+    signOut: 'Abmelden',
+    signedInAs: (name: string) => `Angemeldet als ${name}`,
+  },
   footer: {
     blurb: 'Opposite of Boring · ein Showcase für Spring Boot 4 und Angular 22, live gestreamt über SSE.',
     architecture: 'Architektur',
@@ -78,6 +84,9 @@ const de = {
     busy: 'Wird verdreht …',
     go: 'Langeweile vernichten',
     offline: 'Das Backend schläft. Läuft es überhaupt?',
+    required: 'Schreib etwas Langweiliges hinein.',
+    tooLong: (max: number) => `Höchstens ${max} Zeichen, bitte.`,
+    nameFromGitHub: (name: string) => `Du reichst als ${name} ein`,
     suggestions: [
       'die AGB lesen',
       'Farbe beim Trocknen zusehen',
@@ -130,7 +139,8 @@ const de = {
     unlocked: 'Freigeschaltet',
     unreachable: 'Der Trophäenraum ist nicht erreichbar. Vielleicht wacht das Backend gerade erst auf.',
     retry: 'Erneut versuchen',
-    note: 'Der Fortschritt gehört diesem Browser und wird beim Neustart des Servers zurückgesetzt. Chaos ist vergänglich.',
+    unlockedAgo: (ago: string) => (ago === 'jetzt' ? 'gerade eben verdient' : `vor ${ago} verdient`),
+    note: 'Dein Fortschritt liegt in der Datenbank. Melde dich mit GitHub an, dann folgt er dir auf jedes Gerät.',
   },
 
   how: {
@@ -165,6 +175,12 @@ const en: Messages = {
   theme: (next) => `Switch to ${next} theme`,
   lang: { label: 'Language' },
   source: 'Source code on GitHub',
+  account: {
+    signIn: 'Sign in with GitHub',
+    signInShort: 'Sign in',
+    signOut: 'Sign out',
+    signedInAs: (name) => `Signed in as ${name}`,
+  },
   footer: {
     blurb: 'Opposite of Boring · a Spring Boot 4 and Angular 22 showcase, streamed live over SSE.',
     architecture: 'Architecture',
@@ -226,6 +242,9 @@ const en: Messages = {
     busy: 'Twisting…',
     go: 'Annihilate boredom',
     offline: 'The backend is snoozing. Is it running?',
+    required: 'Type something boring first.',
+    tooLong: (max) => `${max} characters at most, please.`,
+    nameFromGitHub: (name) => `Submitting as ${name}`,
     suggestions: [
       'reading the terms and conditions',
       'watching paint dry',
@@ -276,7 +295,8 @@ const en: Messages = {
     unlocked: 'Unlocked',
     unreachable: "Couldn't reach the trophy room. The backend may still be waking up.",
     retry: 'Try again',
-    note: 'Progress belongs to this browser and resets when the server restarts. Chaos is fleeting.',
+    unlockedAgo: (ago) => (ago === 'now' ? 'earned just now' : `earned ${ago} ago`),
+    note: 'Your progress lives in the database. Sign in with GitHub and it follows you to every device.',
   },
 
   how: {

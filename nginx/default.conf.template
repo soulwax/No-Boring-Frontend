@@ -42,6 +42,14 @@ server {
         return 200 "ok\n";
     }
 
+    # The service worker and its manifest must always be fresh, or an update could never arrive
+    location ~ ^/(ngsw-worker\.js|ngsw\.json|safety-worker\.js|worker-basic\.min\.js)$ {
+        expires -1;
+        add_header Cache-Control "no-cache" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        try_files $uri =404;
+    }
+
     # Angular fingerprints its bundles, so they can be cached for a year
     location ~* \.(?:js|css)$ {
         expires 1y;

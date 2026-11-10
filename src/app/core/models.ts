@@ -68,6 +68,34 @@ export interface AchievementUnlocked {
   description: string;
 }
 
+/** API version 2 of GET /api/achievements; mirrors dev.oob.chaos.achievements.TrophyShelf */
+export interface TrophyShelf {
+  unlocked: number;
+  total: number;
+  trophies: Trophy[];
+}
+
+export interface Trophy {
+  code: string;
+  emoji: string;
+  title: string;
+  description: string;
+  /** null while still locked */
+  unlockedAt: string | null;
+}
+
+/** Mirrors dev.oob.chaos.auth.AccountController.Account (GET /api/me) */
+export interface Me {
+  signedIn: boolean;
+  name: string;
+  login: string | null;
+  avatarUrl: string | null;
+  /** The handle this player's achievement broadcasts carry */
+  tag: string | null;
+  /** Where a GitHub sign-in starts; null when the server has no GitHub client configured */
+  signInUrl: string | null;
+}
+
 /** SSE "wave" event */
 export interface ChaosWave {
   by: string;

@@ -97,7 +97,11 @@
         <h3 class="card-title">{{ t().board.chronicle }}</h3>
         <span class="eyebrow">{{ t().board.liveFeed }}</span>
       </header>
-      <app-chronicle-feed />
+      @defer (on viewport) {
+        <app-chronicle-feed />
+      } @placeholder {
+        <div class="skeleton chronicle-skeleton"></div>
+      }
     </section>
   </aside>
 </div>

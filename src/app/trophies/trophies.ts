@@ -4,13 +4,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
 import { ChaosStream } from '../core/chaos-stream';
 import { I18n } from '../core/i18n';
-import { Achievement } from '../core/models';
-import { PlayerIdentity } from '../core/player';
+import { Account } from '../core/account';
+import { TrophyShelf } from '../core/models';
+import { AgoPipe } from '../shared/ago';
 import { Icon } from '../shared/icon';
 
 @Component({
   selector: 'app-trophies',
-  imports: [Icon],
+  imports: [AgoPipe, Icon],
   template: `
     <section class="page-head">
       <p class="eyebrow">{{ t().trophies.eyebrow }}</p>
@@ -24,12 +25,12 @@ import { Icon } from '../shared/icon';
           <span class="mono">{{ percent() }}%</span>
         </div>
         <div>
-          <strong>{{ t().trophies.count(unlockedCount(), trophies.value().length) }}</strong>
+          <strong>{{ t().trophies.count(trophies.value().unlocked, trophies.value().total) }}</strong>
           <p>
-            @if (unlockedCount() === trophies.value().length) {
+            @if (trophies.value().unlocked === trophies.value().total) {
               {{ t().trophies.all }}
             } @else {
-              {{ t().trophies.locked(trophies.value().length - unlockedCount()) }}
+              {{ t().trophies.locked(trophies.value().total - trophies.value().unlocked) }}
             }
           </p>
         </div>
@@ -37,9 +38,9 @@ import { Icon } from '../shared/icon';
 
       <div class="grid">
         @for (trophy of shelf(); track trophy.code) {
-          <article class="card trophy" [class.unlocked]="trophy.unlocked">
+          <article class="card trophy" [class.unlocked]="trophy.unlockedAt">
             <span class="glyph" aria-hidden="true">
-              @if (trophy.unlocked) {
+              @if (trophy.unlockedAt) {
                 {{ trophy.emoji }}
               } @else {
                 <app-icon name="lock" />
@@ -48,8 +49,11 @@ import { Icon } from '../shared/icon';
             <div class="info">
               <h3>{{ trophy.title }}</h3>
               <p>{{ trophy.description }}</p>
+              @if (trophy.unlockedAt; as at) {
+                <time class="when" [attr.datetime]="at">{{ t().trophies.unlockedAgo(at | ago: loadedAt() : t()) }}</time>
+              }
             </div>
-            @if (trophy.unlocked) {
+            @if (trophy.unlockedAt) {
               <span class="badge done"><app-icon name="check" /> {{ t().trophies.unlocked }}</span>
             }
           </article>
@@ -109,31 +113,41 @@ import { Icon } from '../shared/icon';
     }
     .tile { height: 92px; }
     .problem { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; color: var(--text-2); }
+    .when { display: block; margin-top: 6px; color: var(--text-3); font: 11.5px var(--font-mono); }
     .note { margin-top: 28px; color: var(--text-3); font-size: 13px; }
   `,
 })
 export class Trophies {
   private readonly i18n = inject(I18n);
   protected readonly t = this.i18n.t;
-  /** Re-fetched in the new language whenever it changes */
-  protected readonly trophies = httpResource<Achievement[]>(() => `/api/achievements?lang=${this.i18n.lang()}`);
-  protected readonly unlockedCount = computed(
-    () => this.trophies.value()?.filter((t) => t.unlocked).length ?? 0,
-  );
-  protected readonly percent = computed(() =>
-    Math.round((100 * this.unlockedCount()) / (this.trophies.value()?.length || 1)),
-  );
-  /** Unlocked first, otherwise in the backend's order */
+  private readonly account = inject(Account);
+  /**
+   * API version 2: counts and unlock times included. Re-fetched whenever the language changes,
+   * and when signing in or out swaps whose shelf this is.
+   */
+  protected readonly trophies = httpResource<TrophyShelf>(() => ({
+    url: '/api/achievements',
+    params: { lang: this.i18n.lang(), as: this.account.tag() ?? '' },
+    headers: { 'API-Version': '2' },
+  }));
+  /** "Earned 3 min ago" is relative to when the shelf arrived, not to a ticking clock */
+  protected readonly loadedAt = computed(() => (this.trophies.value(), Date.now()));
+  protected readonly percent = computed(() => {
+    const shelf = this.trophies.value();
+    return shelf ? Math.round((100 * shelf.unlocked) / (shelf.total || 1)) : 0;
+  });
+  /** Most recently earned first, then the locked ones in the backend's order */
   protected readonly shelf = computed(() =>
-    [...(this.trophies.value() ?? [])].sort((a, b) => Number(b.unlocked) - Number(a.unlocked)),
+    [...(this.trophies.value()?.trophies ?? [])].sort((a, b) =>
+      (b.unlockedAt ?? '').localeCompare(a.unlockedAt ?? ''),
+    ),
   );
 
   constructor() {
-    const player = inject(PlayerIdentity);
     // Live refresh: when one of *our* achievements is broadcast, re-fetch the shelf
     inject(ChaosStream)
       .achievements$.pipe(
-        filter((a) => a.playerTag === player.tag()),
+        filter((a) => a.playerTag === this.account.tag()),
         takeUntilDestroyed(),
       )
       .subscribe(() => this.trophies.reload());

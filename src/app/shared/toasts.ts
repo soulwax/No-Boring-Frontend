@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChaosStream } from '../core/chaos-stream';
 import { I18n } from '../core/i18n';
 import { AchievementUnlocked } from '../core/models';
-import { PlayerIdentity } from '../core/player';
+import { Account } from '../core/account';
 
 interface Toast extends AchievementUnlocked {
   id: number;
@@ -55,7 +55,7 @@ const VISIBLE_MS = 5000;
   `,
 })
 export class Toasts {
-  private readonly player = inject(PlayerIdentity);
+  private readonly account = inject(Account);
   protected readonly t = inject(I18n).t;
   protected readonly toasts = signal<Toast[]>([]);
   private nextId = 0;
@@ -67,7 +67,7 @@ export class Toasts {
   }
 
   private show(achievement: AchievementUnlocked): void {
-    const toast = { ...achievement, id: ++this.nextId, mine: achievement.playerTag === this.player.tag() };
+    const toast = { ...achievement, id: ++this.nextId, mine: achievement.playerTag === this.account.tag() };
     this.toasts.update((list) => [...list.slice(-3), toast]);
     setTimeout(() => this.toasts.update((list) => list.filter((t) => t.id !== toast.id)), VISIBLE_MS);
   }

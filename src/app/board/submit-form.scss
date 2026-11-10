@@ -145,3 +145,14 @@ form {
 @media (max-width: 480px) {
   .submit { flex: 1 1 100%; }
 }
+
+// Signed in: the name comes from GitHub, shown where the name field would be
+.as {
+  display: flex;
+  align-items: center;
+  color: var(--text-2);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { ChaosStream } from '../core/chaos-stream';
 import { AchievementUnlocked } from '../core/models';
-import { PlayerIdentity } from '../core/player';
+import { Account } from '../core/account';
 import { Toasts } from './toasts';
 
 const unlocked = (playerTag: string, playerName: string): AchievementUnlocked => ({
@@ -22,7 +22,7 @@ describe('Toasts', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: ChaosStream, useValue: { achievements$ } },
-        { provide: PlayerIdentity, useValue: { tag: signal('my-tag') } },
+        { provide: Account, useValue: { tag: signal('my-tag') } },
       ],
     });
   });

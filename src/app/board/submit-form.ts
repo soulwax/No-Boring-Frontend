@@ -1,5 +1,16 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import {
+  FieldTree,
+  form,
+  FormField,
+  FormRoot,
+  maxLength,
+  required,
+  TreeValidationResult,
+} from '@angular/forms/signals';
+import { firstValueFrom } from 'rxjs';
+import { Account } from '../core/account';
 import { GENRE_CODES, GENRES } from '../core/catalog';
 import { ChaosApi } from '../core/chaos-api';
 import { ChaosStream } from '../core/chaos-stream';
@@ -8,19 +19,22 @@ import { Genre, Problem } from '../core/models';
 import { PlayerIdentity } from '../core/player';
 import { Icon } from '../shared/icon';
 
+interface Draft {
+  original: string;
+}
+
 @Component({
   selector: 'app-submit-form',
-  imports: [Icon],
+  imports: [FormField, FormRoot, Icon],
   template: `
-    <form (submit)="submit($event)">
+    <form [formRoot]="draft">
       <div class="head">
         <label for="original" class="title">{{ t().submit.question }}</label>
-        <span class="counter mono" [class.near]="original().length > 120">{{ original().length }}/140</span>
+        <span class="counter mono" [class.near]="length() > MAX - 20">{{ length() }}/{{ MAX }}</span>
       </div>
       <div class="input-wrap">
-        <input id="original" class="field" maxlength="140" autocomplete="off"
-          [placeholder]="t().submit.example(placeholder())"
-          [value]="original()" (input)="original.set(value($event))" />
+        <input id="original" class="field" autocomplete="off" [formField]="draft.original"
+          [placeholder]="t().submit.example(placeholder())" />
         <button type="button" class="btn btn-ghost icon-btn suggest" (click)="surprise()"
           [title]="t().submit.suggest" [attr.aria-label]="t().submit.suggest">
           <app-icon name="dice" />
@@ -48,9 +62,13 @@ import { Icon } from '../shared/icon';
       </fieldset>
 
       <div class="row">
-        <input class="field name" [attr.aria-label]="t().submit.name" maxlength="40" [placeholder]="t().submit.namePlaceholder"
-          [value]="player.name()" (input)="player.name.set(value($event))" />
-        <button type="submit" class="btn btn-primary submit" [disabled]="busy() || !original().trim()">
+        @if (account.signedIn()) {
+          <p class="field name as">{{ t().submit.nameFromGitHub(account.current()?.name ?? '') }}</p>
+        } @else {
+          <input class="field name" [attr.aria-label]="t().submit.name" maxlength="40"
+            [placeholder]="t().submit.namePlaceholder" [value]="player.name()" (input)="player.name.set(value($event))" />
+        }
+        <button type="submit" class="btn btn-primary submit" [disabled]="busy() || !draft().valid()">
           @if (busy()) {
             <span class="spinner" aria-hidden="true"></span> {{ t().submit.busy }}
           } @else {
@@ -69,54 +87,59 @@ export class SubmitForm {
   private readonly api = inject(ChaosApi);
   private readonly stream = inject(ChaosStream);
   protected readonly player = inject(PlayerIdentity);
+  protected readonly account = inject(Account);
   protected readonly t = inject(I18n).t;
 
+  protected readonly MAX = 140;
   protected readonly genres = GENRES;
   protected readonly genreCodes = GENRE_CODES;
 
-  protected readonly original = signal('');
+  private readonly model = signal<Draft>({ original: '' });
+  /**
+   * Signal Forms: the schema mirrors the backend's @NotBlank/@Size, and the submission's
+   * ProblemDetail comes back as an error on the field itself, cleared as soon as it is edited.
+   */
+  protected readonly draft = form(
+    this.model,
+    (path) => {
+      required(path.original, { message: () => this.t().submit.required });
+      maxLength(path.original, this.MAX, { message: () => this.t().submit.tooLong(this.MAX) });
+    },
+    { submission: { action: (field) => this.send(field) } },
+  );
+
   /** `null` = surprise me */
   protected readonly genre = signal<Genre | null>(null);
-  protected readonly busy = signal(false);
-  protected readonly error = signal<string | null>(null);
-  /** Which suggestion the placeholder shows; an index, so it survives a language switch */
-  private readonly suggestion = Math.floor(Math.random() * 7);
-  protected readonly placeholder = computed(() => {
-    const suggestions = this.t().submit.suggestions;
-    return suggestions[this.suggestion % suggestions.length];
-  });
+  protected readonly busy = computed(() => this.draft().submitting());
+  protected readonly length = computed(() => this.model().original.length);
+  /** Server errors only: an empty field is obvious enough from the disabled button */
+  protected readonly error = computed(
+    () => this.draft.original().errors().find((e) => e.kind !== 'required')?.message ?? null,
+  );
+  /** A fresh suggestion per language, and another after each submission */
+  protected readonly placeholder = linkedSignal(() => pick(this.t().submit.suggestions));
 
   protected readonly lockedGenre = computed(() => this.stream.activeMutator()?.genre ?? null);
   protected readonly effectiveGenre = computed(() => this.lockedGenre() ?? this.genre());
 
-  constructor() {
-    // Clear a stale error as soon as the user edits their submission
-    effect(() => {
-      this.original();
-      this.error.set(null);
-    });
-  }
-
   protected surprise(): void {
-    this.original.set(pick(this.t().submit.suggestions));
+    this.model.set({ original: pick(this.t().submit.suggestions) });
   }
 
-  protected submit(event: Event): void {
-    event.preventDefault();
-    this.busy.set(true);
-    this.api.submit(this.original(), this.player.name(), this.genre()).subscribe({
-      next: () => {
-        this.original.set('');
-        this.busy.set(false);
-      },
-      error: (err: HttpErrorResponse) => {
-        const problem = err.error as Problem | null;
-        this.error.set(
-          problem?.errors?.['original'] ?? problem?.detail ?? this.t().submit.offline,
-        );
-        this.busy.set(false);
-      },
-    });
+  private async send(field: FieldTree<Draft>): Promise<TreeValidationResult> {
+    try {
+      await firstValueFrom(this.api.submit(field.original().value(), this.player.name(), this.genre()));
+      this.model.set({ original: '' });
+      this.placeholder.set(pick(this.t().submit.suggestions));
+      return undefined;
+    } catch (err) {
+      const problem = (err as HttpErrorResponse).error as Problem | null;
+      return {
+        kind: 'server',
+        message: problem?.errors?.['original'] ?? problem?.detail ?? this.t().submit.offline,
+        fieldTree: field.original,
+      };
+    }
   }
 
   protected value(event: Event): string {
