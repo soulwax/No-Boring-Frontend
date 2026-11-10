@@ -1,5 +1,6 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { GENRES, nextTier, tierRank, TIERS } from '../core/catalog';
+import { I18n } from '../core/i18n';
 import { Thing } from '../core/models';
 import { Icon } from '../shared/icon';
 
@@ -14,13 +15,13 @@ const SPARK_COLORS = ['var(--t-curious)', 'var(--t-spicy)', 'var(--t-legendary)'
     '[attr.data-tier]': 'thing().peakTier',
   },
   template: `
-    <div class="rank mono" [attr.aria-label]="'Rank ' + (rank() + 1)">{{ position() }}</div>
+    <div class="rank mono" [attr.aria-label]="t().card.rank(rank() + 1)">{{ position() }}</div>
     <div class="body">
       <div class="tags">
-        <span class="badge tier" [title]="'Peak tier: ' + peak().label"><span class="dot"></span>{{ peak().label }}</span>
-        <span class="badge genre"><span aria-hidden="true">{{ genre().emoji }}</span>{{ genre().label }}</span>
+        <span class="badge tier" [title]="t().card.peak(peak())"><span class="dot"></span>{{ peak() }}</span>
+        <span class="badge genre"><span aria-hidden="true">{{ genre().emoji }}</span>{{ t().genres[thing().genre] }}</span>
         @if (thing().rerolls > 0) {
-          <span class="badge" [title]="'Re-twisted ' + thing().rerolls + ' times'">
+          <span class="badge" [title]="t().card.rerolled(thing().rerolls)">
             <app-icon name="shuffle" /><span class="mono">{{ thing().rerolls }}</span>
           </span>
         }
@@ -30,9 +31,9 @@ const SPARK_COLORS = ['var(--t-curious)', 'var(--t-spicy)', 'var(--t-legendary)'
       } @else {
         <p class="twist">{{ thing().twist }}</p>
       }
-      <p class="original"><span class="eyebrow">was</span><s>{{ thing().original }}</s></p>
+      <p class="original"><span class="eyebrow">{{ t().card.was }}</span><s>{{ thing().original }}</s></p>
       @if (thing().lore.length) {
-        <ul class="lore" aria-label="Lore">
+        <ul class="lore" [attr.aria-label]="t().card.lore">
           @for (line of thing().lore; track $index) {
             <li>{{ line }}</li>
           }
@@ -42,23 +43,23 @@ const SPARK_COLORS = ['var(--t-curious)', 'var(--t-spicy)', 'var(--t-legendary)'
         <span class="author"><span class="avatar" aria-hidden="true">{{ initials() }}</span>{{ thing().author }}</span>
         @if (toNext(); as next) {
           <span class="progress">
-            <span class="next">{{ next.missing }} hype to {{ next.reclaim ? 'reclaim ' : '' }}{{ next.emoji }} {{ next.label }}</span>
+            <span class="next">{{ t().card.toNext(next.missing, next.emoji + ' ' + t().tiers[next.code], next.reclaim) }}</span>
             <span class="track" [attr.data-tier]="next.code"><span [style.width.%]="next.pct"></span></span>
           </span>
         } @else {
-          <span class="summit">Top tier reached</span>
+          <span class="summit">{{ t().card.summit }}</span>
         }
       </div>
     </div>
     <div class="actions">
-      <button type="button" class="hype" (click)="onHype()" [attr.aria-label]="'Hype it, currently ' + thing().hype">
+      <button type="button" class="hype" (click)="onHype()" [attr.aria-label]="t().card.hype(thing().hype)">
         <app-icon name="flame" /><span class="mono">{{ thing().hype }}</span>
         @for (s of sparks(); track s.id) {
           <span class="spark" [style.--dx.px]="s.dx" [style.--dy.px]="s.dy" [style.--c]="s.color"></span>
         }
       </button>
       <button type="button" class="btn btn-ghost icon-btn reroll" (click)="reroll.emit(thing().id)"
-        title="Plot twist: re-roll in the same genre" aria-label="Re-roll the twist">
+        [title]="t().card.rerollTitle" [attr.aria-label]="t().card.reroll">
         <app-icon name="shuffle" />
       </button>
     </div>
@@ -73,10 +74,12 @@ export class ThingCard {
   readonly hype = output<number>();
   readonly reroll = output<number>();
 
+  protected readonly t = inject(I18n).t;
+
   protected readonly sparks = signal<{ id: number; color: string; dx: number; dy: number }[]>([]);
   protected readonly position = computed(() => String(this.rank() + 1).padStart(2, '0'));
   protected readonly genre = computed(() => GENRES[this.thing().genre]);
-  protected readonly peak = computed(() => TIERS[this.thing().peakTier]);
+  protected readonly peak = computed(() => this.t().tiers[this.thing().peakTier]);
   protected readonly initials = computed(() =>
     this.thing()
       .author.split(/\s+/)

@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { I18n } from '../core/i18n';
 import { Thing } from '../core/models';
 import { ThingCard } from './thing-card';
 
@@ -18,7 +19,9 @@ const legendary: Thing = {
 };
 
 describe('ThingCard', () => {
-  it('shows genre, peak tier, lore and the distance to the next tier', async () => {
+  afterEach(() => sessionStorage.clear());
+
+  it('shows genre, peak tier, lore and the distance to the next tier, in German by default', async () => {
     const fixture = TestBed.createComponent(ThingCard);
     fixture.componentRef.setInput('thing', legendary);
     fixture.componentRef.setInput('rank', 0);
@@ -26,10 +29,24 @@ describe('ThingCard', () => {
 
     const el = fixture.nativeElement as HTMLElement;
     expect(el.getAttribute('data-tier')).toBe('LEGENDARY');
-    expect(el.querySelector('.genre')?.textContent).toContain('Medieval');
-    expect(el.querySelector('.tier')?.textContent).toContain('Legendary');
+    expect(el.querySelector('.genre')?.textContent).toContain('Mittelalter');
+    expect(el.querySelector('.tier')?.textContent).toContain('Legendär');
     expect(el.querySelectorAll('.lore li').length).toBe(3);
     // Hype decayed to Spicy; Legendary at 30 was already reached once, so it's a reclaim
+    expect(el.querySelector('.next')?.textContent).toContain('6 Hype, um 👑 Legendär zurückzuerobern');
+  });
+
+  it('switches its copy to English on the fly', async () => {
+    const fixture = TestBed.createComponent(ThingCard);
+    fixture.componentRef.setInput('thing', legendary);
+    fixture.componentRef.setInput('rank', 0);
+    await fixture.whenStable();
+
+    TestBed.inject(I18n).set('en');
+    await fixture.whenStable();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.genre')?.textContent).toContain('Medieval');
     expect(el.querySelector('.next')?.textContent).toContain('6 hype to reclaim 👑 Legendary');
   });
 

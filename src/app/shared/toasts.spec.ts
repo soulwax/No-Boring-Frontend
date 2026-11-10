@@ -27,7 +27,7 @@ describe('Toasts', () => {
     });
   });
 
-  it('shows other players by name and says "You" for your own unlocks', async () => {
+  it('shows other players by name and says "Du" for your own unlocks', async () => {
     const fixture = TestBed.createComponent(Toasts);
     achievements$.next(unlocked('someone-else', 'Ada'));
     achievements$.next(unlocked('my-tag', 'Me'));
@@ -35,8 +35,8 @@ describe('Toasts', () => {
 
     const toasts = [...(fixture.nativeElement as HTMLElement).querySelectorAll('.toast')];
     expect(toasts.map((t) => t.querySelector('strong')?.textContent)).toEqual([
-      'Ada unlocked “Shameless”',
-      'You unlocked “Shameless”',
+      'Ada hat „Shameless“ freigeschaltet',
+      'Du hast „Shameless“ freigeschaltet',
     ]);
     expect(toasts[1].classList).toContain('mine');
   });

@@ -1,6 +1,6 @@
 <header class="topbar">
   <div class="bar shell">
-    <a routerLink="/" class="logo" aria-label="Opposite of Boring, home">
+    <a routerLink="/" class="logo" [attr.aria-label]="i18n.t().brandHome">
       <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
         <rect width="32" height="32" rx="9" />
         <path d="M6 16h6l2.5-6 3.5 12 2.5-6H26" />
@@ -8,27 +8,28 @@
       <span class="wordmark">Opposite of <span class="serif">Boring</span></span>
     </a>
 
-    <nav aria-label="Primary">
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Board</a>
-      <a routerLink="/trophies" routerLinkActive="active">Trophies</a>
-      <a routerLink="/how-it-works" routerLinkActive="active">How it works</a>
+    <nav [attr.aria-label]="i18n.t().nav.label">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">{{ i18n.t().nav.board }}</a>
+      <a routerLink="/trophies" routerLinkActive="active">{{ i18n.t().nav.trophies }}</a>
+      <a routerLink="/how-it-works" routerLinkActive="active">{{ i18n.t().nav.howItWorks }}</a>
     </nav>
 
     <div class="tools">
       <span class="live" [class.offline]="!stream.connected()" role="status">
         <span class="pulse" aria-hidden="true"></span>
         @if (stream.connected()) {
-          <span><span class="mono">{{ stream.online() }}</span> online</span>
+          <span><span class="mono">{{ stream.online() }}</span> {{ i18n.t().live.online }}</span>
         } @else {
-          <span>Reconnecting</span>
+          <span>{{ i18n.t().live.reconnecting }}</span>
         }
       </span>
+      <app-lang-switch />
       <button type="button" class="btn btn-ghost icon-btn" (click)="scheme.toggle()"
-        [attr.aria-label]="'Switch to ' + (scheme.theme() === 'dark' ? 'light' : 'dark') + ' theme'">
+        [attr.aria-label]="i18n.t().theme(scheme.theme() === 'dark' ? 'light' : 'dark')">
         <app-icon [name]="scheme.theme() === 'dark' ? 'sun' : 'moon'" />
       </button>
       <a class="btn btn-ghost icon-btn" href="https://github.com/soulwax/No-Boring-Java-Angular"
-        target="_blank" rel="noopener" aria-label="Source code on GitHub">
+        target="_blank" rel="noopener" [attr.aria-label]="i18n.t().source">
         <app-icon name="github" />
       </a>
     </div>
@@ -41,11 +42,11 @@
 </main>
 
 <footer class="shell footer">
-  <p>Opposite of Boring · a Spring Boot 4 and Angular 22 showcase, streamed live over SSE.</p>
+  <p>{{ i18n.t().footer.blurb }}</p>
   <p class="links">
     <a href="https://github.com/soulwax/No-Boring-Backend" target="_blank" rel="noopener">Backend</a>
     <a href="https://github.com/soulwax/No-Boring-Frontend" target="_blank" rel="noopener">Frontend</a>
-    <a routerLink="/how-it-works">Architecture</a>
+    <a routerLink="/how-it-works">{{ i18n.t().footer.architecture }}</a>
   </p>
 </footer>
 

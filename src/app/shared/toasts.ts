@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChaosStream } from '../core/chaos-stream';
+import { I18n } from '../core/i18n';
 import { AchievementUnlocked } from '../core/models';
 import { PlayerIdentity } from '../core/player';
 
@@ -19,8 +20,8 @@ const VISIBLE_MS = 5000;
       <div class="toast" [class.mine]="toast.mine" role="status">
         <span class="glyph" aria-hidden="true">{{ toast.emoji }}</span>
         <div class="text">
-          <span class="eyebrow">{{ toast.mine ? 'Trophy unlocked' : 'Elsewhere in the room' }}</span>
-          <strong>{{ toast.mine ? 'You' : toast.playerName }} unlocked “{{ toast.title }}”</strong>
+          <span class="eyebrow">{{ toast.mine ? t().toast.mine : t().toast.elsewhere }}</span>
+          <strong>{{ t().toast.unlocked(toast.mine ? null : toast.playerName, toast.title) }}</strong>
           <small>{{ toast.description }}</small>
         </div>
       </div>
@@ -55,6 +56,7 @@ const VISIBLE_MS = 5000;
 })
 export class Toasts {
   private readonly player = inject(PlayerIdentity);
+  protected readonly t = inject(I18n).t;
   protected readonly toasts = signal<Toast[]>([]);
   private nextId = 0;
 

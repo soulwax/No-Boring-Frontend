@@ -1,30 +1,29 @@
 <section class="hero">
-  <p class="eyebrow"><span class="live-tag">Live room</span> Realtime over Server-Sent Events</p>
-  <h1 class="h1">Submit something boring.<br />Watch the room make it <span class="serif accent">legendary.</span></h1>
-  <p class="lede">
-    The Spring Boot backend gives every submission a genre-flavoured plot twist. Hype it to evolve it through
-    five tiers before the room's entropy drains it back down. Everyone sees every change, instantly.
-  </p>
+  <p class="eyebrow"><span class="live-tag">{{ t().board.liveRoom }}</span> {{ t().board.realtime }}</p>
+  <h1 class="h1">
+    {{ t().board.heroLead }}<br />{{ t().board.heroBefore }}<span class="serif accent">{{ t().board.heroAccent }}</span>{{ t().board.heroAfter }}
+  </h1>
+  <p class="lede">{{ t().board.lede }}</p>
 </section>
 
 <dl class="kpis card">
   <div>
-    <dt class="eyebrow">Total hype</dt>
+    <dt class="eyebrow">{{ t().board.totalHype }}</dt>
     <dd class="mono">{{ stream.meter()?.totalHype ?? '—' }}</dd>
   </div>
   <div>
-    <dt class="eyebrow">Things un-bored</dt>
+    <dt class="eyebrow">{{ t().board.unBored }}</dt>
     <dd class="mono">{{ stream.meter()?.things ?? '—' }}</dd>
   </div>
   <div>
-    <dt class="eyebrow">Agents online</dt>
+    <dt class="eyebrow">{{ t().board.agentsOnline }}</dt>
     <dd class="mono">{{ stream.connected() ? stream.online() : '—' }}</dd>
   </div>
   <div>
-    <dt class="eyebrow">Highest tier</dt>
+    <dt class="eyebrow">{{ t().board.highestTier }}</dt>
     <dd>
       @if (topTier(); as top) {
-        <span class="tier-value" [attr.data-tier]="top"><span class="dot"></span>{{ tierInfo[top].label }}</span>
+        <span class="tier-value" [attr.data-tier]="top"><span class="dot"></span>{{ t().tiers[top] }}</span>
       } @else {
         —
       }
@@ -34,19 +33,19 @@
 
 <div class="workspace">
   <div class="main-col">
-    <section class="card composer" aria-label="Submit something boring">
+    <section class="card composer" [attr.aria-label]="t().board.composer">
       <app-submit-form />
     </section>
 
     <section class="leaderboard" aria-labelledby="leaderboard-title">
       <header class="lb-head">
         <div>
-          <h2 id="leaderboard-title" class="h2">Leaderboard</h2>
-          <p class="sub">Ranked by live hype. Hype fades every few seconds; peak tiers and lore are forever.</p>
+          <h2 id="leaderboard-title" class="h2">{{ t().board.leaderboard }}</h2>
+          <p class="sub">{{ t().board.leaderboardSub }}</p>
         </div>
-        <ol class="tier-legend" aria-label="Evolution tiers and the hype they need">
-          @for (t of tiers; track t.code) {
-            <li [attr.data-tier]="t.code"><span class="dot"></span>{{ t.label }} <span class="mono">{{ t.threshold }}</span></li>
+        <ol class="tier-legend" [attr.aria-label]="t().board.tierLegend">
+          @for (tier of tiers; track tier.code) {
+            <li [attr.data-tier]="tier.code"><span class="dot"></span>{{ t().tiers[tier.code] }} <span class="mono">{{ tier.threshold }}</span></li>
           }
         </ol>
       </header>
@@ -64,8 +63,8 @@
         } @empty {
           @if (stream.connected()) {
             <div class="empty">
-              <p><strong>Nothing here yet.</strong></p>
-              <p>That's the most boring thing we've ever seen. Submit the first one above.</p>
+              <p><strong>{{ t().board.emptyTitle }}</strong></p>
+              <p>{{ t().board.emptyBody }}</p>
             </div>
           } @else {
             @for (n of [1, 2, 3]; track n) {
@@ -80,13 +79,13 @@
   <aside class="rail">
     <section class="card meter-card">
       <header class="card-header">
-        <h3 class="card-title">Chaos meter</h3>
-        <span class="badge">Decays every 4s</span>
+        <h3 class="card-title">{{ t().board.meter }}</h3>
+        <span class="badge">{{ t().board.decays }}</span>
       </header>
       <div class="meter-body">
         @if (stream.meter(); as meter) {
           <app-chaos-meter [level]="meter.level" [mood]="meter.mood" />
-          <p class="meter-note">At 85 the room triggers a chaos wave and a random mutator.</p>
+          <p class="meter-note">{{ t().board.meterNote }}</p>
         } @else {
           <div class="skeleton gauge-skeleton"></div>
         }
@@ -95,8 +94,8 @@
 
     <section class="card chronicle-card">
       <header class="card-header">
-        <h3 class="card-title">Chronicle</h3>
-        <span class="eyebrow">Live feed</span>
+        <h3 class="card-title">{{ t().board.chronicle }}</h3>
+        <span class="eyebrow">{{ t().board.liveFeed }}</span>
       </header>
       <app-chronicle-feed />
     </section>

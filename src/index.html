@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="utf-8">
   <title>Opposite of Boring</title>
-  <meta name="description" content="Submit something boring, watch it get twisted live, hype it before it fades. A Spring Boot 4 and Angular 22 showcase.">
+  <meta name="description" content="Reich etwas Langweiliges ein, sieh zu, wie es live verdreht wird, und hype es, bevor es verblasst. Ein Showcase für Spring Boot 4 und Angular 22.">
   <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#111216" media="(prefers-color-scheme: dark)">
   <base href="/">
@@ -18,6 +18,8 @@
     try {
       var theme = localStorage.getItem('oob.theme');
       if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+      // German by default; this tab may have switched to English
+      if (sessionStorage.getItem('oob.lang') === 'en') document.documentElement.lang = 'en';
     } catch (e) {}
   </script>
 </head>

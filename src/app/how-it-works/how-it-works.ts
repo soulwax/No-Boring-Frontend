@@ -1,65 +1,177 @@
 import { httpResource } from '@angular/common/http';
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { I18n, Lang } from '../core/i18n';
 import { Icon } from '../shared/icon';
+
+/** Copy in both languages, kept next to the feature it describes */
+type Copy = Record<Lang, string>;
 
 interface Feature {
   layer: 'Spring Boot' | 'Angular';
-  title: string;
+  title: Copy;
   where: string;
-  what: string;
+  what: Copy;
 }
 
 type Layer = Feature['layer'];
 
 const FEATURES: Feature[] = [
-  { layer: 'Spring Boot', title: 'Server-Sent Events', where: 'live/ChaosBroadcaster.java',
-    what: 'One SseEmitter per tab. Every change is pushed to everyone instantly. No polling, no WebSocket broker.' },
-  { layer: 'Spring Boot', title: 'Transactional domain events', where: 'board/ChaosService.java',
-    what: 'The service publishes ChaosEvents; @TransactionalEventListener only broadcasts after the commit succeeds.' },
-  { layer: 'Spring Boot', title: '@Scheduled entropy', where: 'board/ChaosService.java#decay',
-    what: 'A bulk JPQL update drains hype every few seconds, so the board never stands still.' },
-  { layer: 'Spring Boot', title: 'Custom Bean Validation', where: 'web/ActuallyBoring.java',
-    what: 'A home-made @ActuallyBoring constraint rejects anything that already sounds fun.' },
-  { layer: 'Spring Boot', title: 'RFC 9457 Problem Details', where: 'web/ApiExceptionHandler.java',
-    what: 'Every error is application/problem+json, with per-field messages the UI shows verbatim.' },
-  { layer: 'Spring Boot', title: 'Spring Data JPA + H2', where: 'board/BoringThingRepository.java',
-    what: 'Derived queries, a @Modifying bulk update, and an in-memory DB with a web console.' },
-  { layer: 'Spring Boot', title: 'Custom argument resolver', where: 'web/PlayerArgumentResolver.java',
-    what: 'Controllers just declare a Player parameter; it is built from request headers.' },
-  { layer: 'Spring Boot', title: 'Decoupled event listeners', where: 'achievements/AchievementTracker.java',
-    what: 'Achievements react to the board’s domain events. The board has no idea achievements exist.' },
-  { layer: 'Spring Boot', title: 'Injectable Clock', where: 'achievements/AchievementTrackerTest.java',
-    what: 'The 3 a.m. "Insomniac" trophy is tested at noon with a fixed Clock bean.' },
-  { layer: 'Spring Boot', title: 'Rich enums as a domain language', where: 'twist/Genre.java, board/Tier.java',
-    what: 'Genres carry their own vocabulary; tiers carry thresholds and the lore they unlock.' },
-  { layer: 'Spring Boot', title: 'JPA AttributeConverter', where: 'board/LinesConverter.java',
-    what: 'Each thing’s lore is a List<String> stored in one column. No join table needed.' },
-  { layer: 'Spring Boot', title: 'Lock-free timed state', where: 'mutator/MutatorDirector.java',
-    what: 'An AtomicReference holds the active mutator; two @Scheduled jobs start and expire them.' },
-  { layer: 'Spring Boot', title: 'A read model built from events', where: 'live/Chronicle.java',
-    what: 'Domain events become a human-readable feed, with a ring buffer for anyone who joins late.' },
-  { layer: 'Angular', title: 'Signal store over SSE', where: 'core/chaos-stream.ts',
-    what: 'EventSource events land in signals; computed() keeps the leaderboard sorted for free.' },
-  { layer: 'Angular', title: 'Signals for state, Observables for events', where: 'core/chaos-stream.ts',
-    what: 'Achievements and waves are Subjects: a signal would swallow two identical events in a row.' },
-  { layer: 'Angular', title: 'Functional HTTP interceptor', where: 'core/player.ts',
-    what: 'Every /api request gets the player headers, httpResource calls included.' },
-  { layer: 'Angular', title: 'Web Crypto', where: 'core/player.ts#tagFor',
-    what: 'The browser SHA-256-hashes its own id to recognize its achievements without the server leaking ids.' },
-  { layer: 'Angular', title: 'FLIP with afterRenderEffect', where: 'shared/flip.ts',
-    what: 'Cards measure themselves after every render and glide from their old rank to the new one.' },
-  { layer: 'Angular', title: 'Effects with cleanup', where: 'shared/mutator-banner.ts',
-    what: 'The countdown ticks only while a mutator runs; onCleanup stops the interval.' },
-  { layer: 'Angular', title: 'Signal inputs & outputs', where: 'board/thing-card.ts',
-    what: 'input.required(), output() and host bindings drive the card, its tier progress and the flash effect.' },
-  { layer: 'Angular', title: 'Design tokens & theming', where: 'core/color-scheme.ts',
-    what: 'OKLCH tokens with a light and dark theme, applied before first paint and swapped with a View Transition.' },
-  { layer: 'Angular', title: 'Built-in control flow', where: 'board/board.html',
-    what: '@for with track and @empty, @if with aliasing. No structural directive imports.' },
-  { layer: 'Angular', title: 'Zoneless + httpResource', where: 'how-it-works/how-it-works.ts',
-    what: 'This page loads /actuator/health declaratively; the app runs with no zone.js at all.' },
-  { layer: 'Angular', title: 'Lazy routes', where: 'app.routes.ts',
-    what: 'This page is a separate chunk loaded with loadComponent the first time you visit it.' },
+  { layer: 'Spring Boot', where: 'live/ChaosBroadcaster.java',
+    title: { de: 'Server-Sent Events', en: 'Server-Sent Events' },
+    what: {
+      de: 'Ein SseEmitter pro Tab. Jede Änderung geht sofort an alle. Kein Polling, kein WebSocket-Broker.',
+      en: 'One SseEmitter per tab. Every change is pushed to everyone instantly. No polling, no WebSocket broker.',
+    } },
+  { layer: 'Spring Boot', where: 'board/ChaosService.java',
+    title: { de: 'Transaktionale Domain-Events', en: 'Transactional domain events' },
+    what: {
+      de: 'Der Service veröffentlicht ChaosEvents; @TransactionalEventListener sendet erst, wenn der Commit geklappt hat.',
+      en: 'The service publishes ChaosEvents; @TransactionalEventListener only broadcasts after the commit succeeds.',
+    } },
+  { layer: 'Spring Boot', where: 'board/ChaosService.java#decay',
+    title: { de: '@Scheduled-Entropie', en: '@Scheduled entropy' },
+    what: {
+      de: 'Ein JPQL-Bulk-Update zieht alle paar Sekunden Hype ab, damit das Board nie stillsteht.',
+      en: 'A bulk JPQL update drains hype every few seconds, so the board never stands still.',
+    } },
+  { layer: 'Spring Boot', where: 'web/ActuallyBoring.java',
+    title: { de: 'Eigene Bean Validation', en: 'Custom Bean Validation' },
+    what: {
+      de: 'Ein selbstgebauter @ActuallyBoring-Constraint lehnt alles ab, was schon nach Spaß klingt.',
+      en: 'A home-made @ActuallyBoring constraint rejects anything that already sounds fun.',
+    } },
+  { layer: 'Spring Boot', where: 'web/ApiExceptionHandler.java',
+    title: { de: 'RFC 9457 Problem Details', en: 'RFC 9457 Problem Details' },
+    what: {
+      de: 'Jeder Fehler ist application/problem+json, mit Meldungen pro Feld aus einem MessageSource, die die UI wörtlich zeigt.',
+      en: 'Every error is application/problem+json, with per-field messages from a MessageSource that the UI shows verbatim.',
+    } },
+  { layer: 'Spring Boot', where: 'board/BoringThingRepository.java',
+    title: { de: 'Spring Data JPA + H2', en: 'Spring Data JPA + H2' },
+    what: {
+      de: 'Abgeleitete Queries, ein @Modifying-Bulk-Update und eine In-Memory-DB mit Web-Konsole.',
+      en: 'Derived queries, a @Modifying bulk update, and an in-memory DB with a web console.',
+    } },
+  { layer: 'Spring Boot', where: 'web/PlayerArgumentResolver.java, web/LangArgumentResolver.java',
+    title: { de: 'Eigene Argument-Resolver', en: 'Custom argument resolvers' },
+    what: {
+      de: 'Controller deklarieren einfach Player- und Lang-Parameter; beide werden aus dem Request gebaut.',
+      en: 'Controllers just declare Player and Lang parameters; both are built from the request.',
+    } },
+  { layer: 'Spring Boot', where: 'achievements/AchievementTracker.java',
+    title: { de: 'Entkoppelte Event-Listener', en: 'Decoupled event listeners' },
+    what: {
+      de: 'Erfolge reagieren auf die Domain-Events des Boards. Das Board weiß nicht, dass es Erfolge gibt.',
+      en: 'Achievements react to the board’s domain events. The board has no idea achievements exist.',
+    } },
+  { layer: 'Spring Boot', where: 'achievements/AchievementTrackerTest.java',
+    title: { de: 'Injizierbare Clock', en: 'Injectable Clock' },
+    what: {
+      de: 'Die „Schlaflos“-Trophäe für 3 Uhr nachts wird mittags mit einer festen Clock getestet.',
+      en: 'The 3 a.m. "Insomniac" trophy is tested at noon with a fixed Clock bean.',
+    } },
+  { layer: 'Spring Boot', where: 'twist/Genre.java, board/Tier.java',
+    title: { de: 'Reiche Enums als Domänensprache', en: 'Rich enums as a domain language' },
+    what: {
+      de: 'Genres bringen ihr Vokabular mit, Stufen ihre Schwellen und die Lore, die sie freischalten, jeweils zweisprachig.',
+      en: 'Genres carry their own vocabulary; tiers carry thresholds and the lore they unlock, each in both languages.',
+    } },
+  { layer: 'Spring Boot', where: 'i18n/Localized.java, twist/Twist.java',
+    title: { de: 'Sprachneutrale Inhalte', en: 'Language-neutral content' },
+    what: {
+      de: 'Twists und Lore werden als Positionen in Wortlisten gespeichert, also bekommt jeder SSE-Client sie in seiner Sprache.',
+      en: 'Twists and lore are stored as positions in word lists, so every SSE client receives them in its own language.',
+    } },
+  { layer: 'Spring Boot', where: 'board/LinesConverter.java',
+    title: { de: 'JPA AttributeConverter', en: 'JPA AttributeConverter' },
+    what: {
+      de: 'Die Lore jedes Dings ist eine Liste von Schlüsseln in einer einzigen Spalte. Keine Join-Tabelle nötig.',
+      en: 'Each thing’s lore is a List<String> of keys stored in one column. No join table needed.',
+    } },
+  { layer: 'Spring Boot', where: 'mutator/MutatorDirector.java',
+    title: { de: 'Lock-freier, zeitgesteuerter Zustand', en: 'Lock-free timed state' },
+    what: {
+      de: 'Eine AtomicReference hält den aktiven Mutator; zwei @Scheduled-Jobs starten ihn und lassen ihn ablaufen.',
+      en: 'An AtomicReference holds the active mutator; two @Scheduled jobs start and expire them.',
+    } },
+  { layer: 'Spring Boot', where: 'live/Chronicle.java',
+    title: { de: 'Ein Read-Model aus Events', en: 'A read model built from events' },
+    what: {
+      de: 'Domain-Events werden zu einem lesbaren Feed, mit Ringpuffer für alle, die später dazukommen.',
+      en: 'Domain events become a human-readable feed, with a ring buffer for anyone who joins late.',
+    } },
+  { layer: 'Angular', where: 'core/chaos-stream.ts',
+    title: { de: 'Signal-Store über SSE', en: 'Signal store over SSE' },
+    what: {
+      de: 'EventSource-Events landen in Signals; computed() hält die Rangliste ganz nebenbei sortiert.',
+      en: 'EventSource events land in signals; computed() keeps the leaderboard sorted for free.',
+    } },
+  { layer: 'Angular', where: 'core/chaos-stream.ts#achievements$',
+    title: { de: 'Signals für Zustand, Observables für Events', en: 'Signals for state, Observables for events' },
+    what: {
+      de: 'Erfolge und Wellen sind Subjects: Ein Signal würde zwei identische Events hintereinander verschlucken.',
+      en: 'Achievements and waves are Subjects: a signal would swallow two identical events in a row.',
+    } },
+  { layer: 'Angular', where: 'core/player.ts, core/i18n.ts',
+    title: { de: 'Funktionale HTTP-Interceptors', en: 'Functional HTTP interceptors' },
+    what: {
+      de: 'Jeder /api-Request bekommt die Player-Header und Accept-Language, auch httpResource-Aufrufe.',
+      en: 'Every /api request gets the player headers and Accept-Language, httpResource calls included.',
+    } },
+  { layer: 'Angular', where: 'core/i18n.ts',
+    title: { de: 'Laufzeit-i18n mit Signals', en: 'Runtime i18n with signals' },
+    what: {
+      de: 'Der DE/EN-Schalter tauscht ein typisiertes Wörterbuch, übersetzt den Titel und baut den Stream neu auf; die Wahl liegt im sessionStorage.',
+      en: 'The DE/EN switch swaps a typed dictionary, retitles the page and reconnects the stream; the choice lives in sessionStorage.',
+    } },
+  { layer: 'Angular', where: 'core/player.ts#tagFor',
+    title: { de: 'Web Crypto', en: 'Web Crypto' },
+    what: {
+      de: 'Der Browser hasht seine eigene ID mit SHA-256, um seine Erfolge zu erkennen, ohne dass der Server IDs preisgibt.',
+      en: 'The browser SHA-256-hashes its own id to recognize its achievements without the server leaking ids.',
+    } },
+  { layer: 'Angular', where: 'shared/flip.ts',
+    title: { de: 'FLIP mit afterRenderEffect', en: 'FLIP with afterRenderEffect' },
+    what: {
+      de: 'Karten vermessen sich nach jedem Render und gleiten von ihrem alten Platz zum neuen.',
+      en: 'Cards measure themselves after every render and glide from their old rank to the new one.',
+    } },
+  { layer: 'Angular', where: 'shared/mutator-banner.ts',
+    title: { de: 'Effects mit Cleanup', en: 'Effects with cleanup' },
+    what: {
+      de: 'Der Countdown tickt nur, während ein Mutator läuft; onCleanup stoppt das Intervall.',
+      en: 'The countdown ticks only while a mutator runs; onCleanup stops the interval.',
+    } },
+  { layer: 'Angular', where: 'board/thing-card.ts',
+    title: { de: 'Signal-Inputs & -Outputs', en: 'Signal inputs & outputs' },
+    what: {
+      de: 'input.required(), output() und Host-Bindings steuern die Karte, ihren Stufenfortschritt und das Aufblitzen.',
+      en: 'input.required(), output() and host bindings drive the card, its tier progress and the flash effect.',
+    } },
+  { layer: 'Angular', where: 'core/color-scheme.ts',
+    title: { de: 'Design-Tokens & Theming', en: 'Design tokens & theming' },
+    what: {
+      de: 'OKLCH-Tokens mit hellem und dunklem Design, vor dem ersten Paint gesetzt und per View Transition gewechselt.',
+      en: 'OKLCH tokens with a light and dark theme, applied before first paint and swapped with a View Transition.',
+    } },
+  { layer: 'Angular', where: 'board/board.html',
+    title: { de: 'Eingebauter Control Flow', en: 'Built-in control flow' },
+    what: {
+      de: '@for mit track und @empty, @if mit Alias. Keine Imports für Strukturdirektiven.',
+      en: '@for with track and @empty, @if with aliasing. No structural directive imports.',
+    } },
+  { layer: 'Angular', where: 'how-it-works/how-it-works.ts',
+    title: { de: 'Zoneless + httpResource', en: 'Zoneless + httpResource' },
+    what: {
+      de: 'Diese Seite lädt /actuator/health deklarativ; die App läuft ganz ohne zone.js.',
+      en: 'This page loads /actuator/health declaratively; the app runs with no zone.js at all.',
+    } },
+  { layer: 'Angular', where: 'app.routes.ts',
+    title: { de: 'Lazy Routes', en: 'Lazy routes' },
+    what: {
+      de: 'Diese Seite ist ein eigener Chunk, der beim ersten Besuch per loadComponent geladen wird.',
+      en: 'This page is a separate chunk loaded with loadComponent the first time you visit it.',
+    } },
 ];
 
 const BACKEND = 'https://github.com/soulwax/No-Boring-Backend/blob/main/src';
@@ -75,12 +187,17 @@ function sourceUrl({ layer, where }: Feature): string {
 }
 
 /** One submission's round trip, as shown at the top of the page */
-const FLOW = [
-  { step: 'Angular', title: 'Submit', detail: 'POST /api/things', note: 'HttpClient + player headers' },
-  { step: 'Web', title: 'Validate', detail: '@ActuallyBoring', note: 'RFC 9457 on failure' },
-  { step: 'Domain', title: 'Twist & evolve', detail: 'ChaosService', note: 'publishes domain events' },
-  { step: 'After commit', title: 'Broadcast', detail: 'ChaosBroadcaster', note: '@TransactionalEventListener' },
-  { step: 'Every tab', title: 'Re-render', detail: 'GET /api/stream', note: 'SSE → signals → computed' },
+const FLOW: { step: Copy; title: Copy; detail: string; note: Copy }[] = [
+  { step: { de: 'Angular', en: 'Angular' }, title: { de: 'Einreichen', en: 'Submit' }, detail: 'POST /api/things',
+    note: { de: 'HttpClient + Player-Header', en: 'HttpClient + player headers' } },
+  { step: { de: 'Web', en: 'Web' }, title: { de: 'Validieren', en: 'Validate' }, detail: '@ActuallyBoring',
+    note: { de: 'RFC 9457 bei Fehlern', en: 'RFC 9457 on failure' } },
+  { step: { de: 'Domäne', en: 'Domain' }, title: { de: 'Twisten & entwickeln', en: 'Twist & evolve' }, detail: 'ChaosService',
+    note: { de: 'veröffentlicht Domain-Events', en: 'publishes domain events' } },
+  { step: { de: 'Nach dem Commit', en: 'After commit' }, title: { de: 'Senden', en: 'Broadcast' }, detail: 'ChaosBroadcaster',
+    note: { de: '@TransactionalEventListener', en: '@TransactionalEventListener' } },
+  { step: { de: 'Jeder Tab', en: 'Every tab' }, title: { de: 'Neu rendern', en: 'Re-render' }, detail: 'GET /api/stream?lang=…',
+    note: { de: 'SSE → Signals → computed', en: 'SSE → signals → computed' } },
 ];
 
 @Component({
@@ -88,56 +205,53 @@ const FLOW = [
   imports: [Icon],
   template: `
     <section class="page-head">
-      <p class="eyebrow">Architecture</p>
-      <h1 class="h1">How the chaos <span class="serif">is made</span></h1>
-      <p class="lede">
-        A Spring Boot 4 backend and a zoneless Angular 22 frontend, wired together by REST for commands and
-        Server-Sent Events for everything that happens afterwards. Every card below links to its source.
-      </p>
+      <p class="eyebrow">{{ t().how.eyebrow }}</p>
+      <h1 class="h1">{{ t().how.titleBefore }}<span class="serif">{{ t().how.titleAccent }}</span></h1>
+      <p class="lede">{{ t().how.lede }}</p>
       <p class="health">
-        <span class="eyebrow">Backend health</span>
+        <span class="eyebrow">{{ t().how.health }}</span>
         @if (health.isLoading()) {
-          <span class="badge">Checking…</span>
+          <span class="badge">{{ t().how.checking }}</span>
         } @else if (health.hasValue()) {
           <span class="badge" [class.up]="health.value().status === 'UP'"><span class="dot"></span>{{ health.value().status }}</span>
         } @else {
-          <span class="badge down"><span class="dot"></span>Unreachable</span>
+          <span class="badge down"><span class="dot"></span>{{ t().how.unreachable }}</span>
         }
-        <button type="button" class="btn btn-ghost icon-btn" (click)="health.reload()" aria-label="Check again">
+        <button type="button" class="btn btn-ghost icon-btn" (click)="health.reload()" [attr.aria-label]="t().how.checkAgain">
           <app-icon name="refresh" />
         </button>
       </p>
     </section>
 
-    <ol class="flow" aria-label="Round trip of one submission">
-      @for (f of flow; track f.title; let i = $index) {
+    <ol class="flow" [attr.aria-label]="t().how.flow">
+      @for (f of flow; track f.detail; let i = $index) {
         <li class="card">
-          <span class="eyebrow">{{ i + 1 }} · {{ f.step }}</span>
-          <strong>{{ f.title }}</strong>
+          <span class="eyebrow">{{ i + 1 }} · {{ f.step[lang()] }}</span>
+          <strong>{{ f.title[lang()] }}</strong>
           <code>{{ f.detail }}</code>
-          <small>{{ f.note }}</small>
+          <small>{{ f.note[lang()] }}</small>
         </li>
       }
     </ol>
 
     <div class="toolbar">
-      <h2>{{ visible().length }} things worth reading</h2>
-      <div class="segmented" role="group" aria-label="Filter by layer">
+      <h2>{{ t().how.worthReading(visible().length) }}</h2>
+      <div class="segmented" role="group" [attr.aria-label]="t().how.filter">
         @for (option of filters; track option) {
           <button type="button" [class.on]="layer() === option" [attr.aria-pressed]="layer() === option"
             (click)="layer.set(option)">
-            {{ option }} <span class="mono">{{ count(option) }}</span>
+            {{ option === 'All' ? t().how.all : option }} <span class="mono">{{ count(option) }}</span>
           </button>
         }
       </div>
     </div>
 
     <div class="grid">
-      @for (f of visible(); track f.title) {
+      @for (f of visible(); track f.title.en) {
         <a class="card feature" [href]="f.href" target="_blank" rel="noopener" [attr.data-layer]="f.layer">
           <span class="eyebrow"><span class="dot"></span>{{ f.layer }}</span>
-          <h3>{{ f.title }}</h3>
-          <p>{{ f.what }}</p>
+          <h3>{{ f.title[lang()] }}</h3>
+          <p>{{ f.what[lang()] }}</p>
           <code>{{ f.where }} <app-icon name="arrowUpRight" /></code>
         </a>
       }
@@ -188,6 +302,9 @@ const FLOW = [
   `,
 })
 export class HowItWorks {
+  private readonly i18n = inject(I18n);
+  protected readonly t = this.i18n.t;
+  protected readonly lang = this.i18n.lang;
   protected readonly flow = FLOW;
   protected readonly filters: ('All' | Layer)[] = ['All', 'Spring Boot', 'Angular'];
   protected readonly layer = signal<'All' | Layer>('All');

@@ -3,6 +3,7 @@ import { Component, computed, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
 import { ChaosStream } from '../core/chaos-stream';
+import { I18n } from '../core/i18n';
 import { Achievement } from '../core/models';
 import { PlayerIdentity } from '../core/player';
 import { Icon } from '../shared/icon';
@@ -12,55 +13,52 @@ import { Icon } from '../shared/icon';
   imports: [Icon],
   template: `
     <section class="page-head">
-      <p class="eyebrow">Achievements</p>
-      <h1 class="h1">Your trophy <span class="serif">shelf</span></h1>
-      <p class="lede">
-        Earned by what you do on the board. The backend derives them from domain events, so they unlock
-        the moment you earn them, with a toast in every tab.
-      </p>
+      <p class="eyebrow">{{ t().trophies.eyebrow }}</p>
+      <h1 class="h1">{{ t().trophies.titleBefore }}<span class="serif">{{ t().trophies.titleAccent }}</span></h1>
+      <p class="lede">{{ t().trophies.lede }}</p>
     </section>
 
     @if (trophies.hasValue()) {
       <div class="summary card">
-        <div class="ring" [style.--p]="percent()" role="img" [attr.aria-label]="percent() + '% unlocked'">
+        <div class="ring" [style.--p]="percent()" role="img" [attr.aria-label]="t().trophies.percent(percent())">
           <span class="mono">{{ percent() }}%</span>
         </div>
         <div>
-          <strong>{{ unlockedCount() }} of {{ trophies.value().length }} unlocked</strong>
+          <strong>{{ t().trophies.count(unlockedCount(), trophies.value().length) }}</strong>
           <p>
             @if (unlockedCount() === trophies.value().length) {
-              Every single one. The room salutes you.
+              {{ t().trophies.all }}
             } @else {
-              {{ trophies.value().length - unlockedCount() }} still locked. Hype, submit and re-roll to find them.
+              {{ t().trophies.locked(trophies.value().length - unlockedCount()) }}
             }
           </p>
         </div>
       </div>
 
       <div class="grid">
-        @for (t of shelf(); track t.code) {
-          <article class="card trophy" [class.unlocked]="t.unlocked">
+        @for (trophy of shelf(); track trophy.code) {
+          <article class="card trophy" [class.unlocked]="trophy.unlocked">
             <span class="glyph" aria-hidden="true">
-              @if (t.unlocked) {
-                {{ t.emoji }}
+              @if (trophy.unlocked) {
+                {{ trophy.emoji }}
               } @else {
                 <app-icon name="lock" />
               }
             </span>
             <div class="info">
-              <h3>{{ t.title }}</h3>
-              <p>{{ t.description }}</p>
+              <h3>{{ trophy.title }}</h3>
+              <p>{{ trophy.description }}</p>
             </div>
-            @if (t.unlocked) {
-              <span class="badge done"><app-icon name="check" /> Unlocked</span>
+            @if (trophy.unlocked) {
+              <span class="badge done"><app-icon name="check" /> {{ t().trophies.unlocked }}</span>
             }
           </article>
         }
       </div>
     } @else if (trophies.error()) {
       <div class="card problem">
-        <p>Couldn't reach the trophy room. The backend may still be waking up.</p>
-        <button type="button" class="btn" (click)="trophies.reload()"><app-icon name="refresh" /> Try again</button>
+        <p>{{ t().trophies.unreachable }}</p>
+        <button type="button" class="btn" (click)="trophies.reload()"><app-icon name="refresh" /> {{ t().trophies.retry }}</button>
       </div>
     } @else {
       <div class="grid">
@@ -70,7 +68,7 @@ import { Icon } from '../shared/icon';
       </div>
     }
 
-    <p class="note">Progress belongs to this browser and resets when the server restarts. Chaos is fleeting.</p>
+    <p class="note">{{ t().trophies.note }}</p>
   `,
   styles: `
     .summary { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; padding: 18px 20px; }
@@ -115,7 +113,10 @@ import { Icon } from '../shared/icon';
   `,
 })
 export class Trophies {
-  protected readonly trophies = httpResource<Achievement[]>(() => '/api/achievements');
+  private readonly i18n = inject(I18n);
+  protected readonly t = this.i18n.t;
+  /** Re-fetched in the new language whenever it changes */
+  protected readonly trophies = httpResource<Achievement[]>(() => `/api/achievements?lang=${this.i18n.lang()}`);
   protected readonly unlockedCount = computed(
     () => this.trophies.value()?.filter((t) => t.unlocked).length ?? 0,
   );

@@ -1,5 +1,6 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ChaosStream } from '../core/chaos-stream';
+import { I18n } from '../core/i18n';
 
 /** Sticky banner for the room-wide mutator, with a live countdown. */
 @Component({
@@ -13,8 +14,8 @@ import { ChaosStream } from '../core/chaos-stream';
           <strong>{{ m.title }}</strong>
           <small>{{ m.description }}</small>
         </div>
-        <span class="eyebrow tag">Room mutator</span>
-        <span class="clock" [attr.aria-label]="secondsLeft() + ' seconds left'">{{ secondsLeft() }}s</span>
+        <span class="eyebrow tag">{{ t().mutator.tag }}</span>
+        <span class="clock" [attr.aria-label]="t().mutator.left(secondsLeft())">{{ secondsLeft() }}s</span>
         <span class="fuse" [style.animation-duration.ms]="totalMs()"></span>
       </div>
     }
@@ -59,6 +60,7 @@ import { ChaosStream } from '../core/chaos-stream';
 })
 export class MutatorBanner {
   protected readonly mutator = inject(ChaosStream).activeMutator;
+  protected readonly t = inject(I18n).t;
   private readonly now = signal(Date.now());
 
   protected readonly secondsLeft = computed(() => {

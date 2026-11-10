@@ -1,17 +1,18 @@
 import { Routes } from '@angular/router';
 import { Board } from './board/board';
 
+/** Titles are keys into Messages['titles']; I18nTitleStrategy translates them. */
 export const routes: Routes = [
-  { path: '', component: Board, title: 'Opposite of Boring' },
+  { path: '', component: Board, title: 'board' },
   {
     path: 'trophies',
     loadComponent: () => import('./trophies/trophies').then((m) => m.Trophies),
-    title: 'Trophies · Opposite of Boring',
+    title: 'trophies',
   },
   {
     path: 'how-it-works',
     loadComponent: () => import('./how-it-works/how-it-works').then((m) => m.HowItWorks),
-    title: 'How it works · Opposite of Boring',
+    title: 'howItWorks',
   },
   { path: '**', redirectTo: '' },
 ];

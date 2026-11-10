@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChaosStream } from '../core/chaos-stream';
+import { I18n } from '../core/i18n';
 import { ChaosWave } from '../core/models';
 
 const EMOJI = ['🔥', '⚡', '🎉', '💥', '✨', '🚀', '🌶️', '🦄', '🌊', '🎸', '🪩'];
@@ -21,9 +22,9 @@ interface Drop {
     @if (wave(); as w) {
       <div class="veil"></div>
       <div class="banner">
-        <span class="eyebrow">Chaos meter crossed 85</span>
-        <strong>Chaos <span class="serif">wave</span></strong>
-        <small>unleashed by {{ w.by }}</small>
+        <span class="eyebrow">{{ t().wave.crossed }}</span>
+        <strong>{{ t().wave.before }}<span class="serif">{{ t().wave.accent }}</span></strong>
+        <small>{{ t().wave.by(w.by) }}</small>
       </div>
       @for (drop of drops(); track drop.id) {
         <span class="drop" [style.left.%]="drop.x" [style.animation-delay.ms]="drop.delay"
@@ -57,6 +58,7 @@ interface Drop {
   `,
 })
 export class ChaosWaveOverlay {
+  protected readonly t = inject(I18n).t;
   protected readonly wave = signal<ChaosWave | null>(null);
   protected readonly drops = signal<Drop[]>([]);
   private timer?: ReturnType<typeof setTimeout>;

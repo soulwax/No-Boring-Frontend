@@ -1,5 +1,6 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { ChaosStream } from '../core/chaos-stream';
+import { I18n } from '../core/i18n';
 import { AgoPipe } from '../shared/ago';
 
 const TICK_MS = 15_000;
@@ -14,10 +15,10 @@ const TICK_MS = 15_000;
         <li>
           <span class="glyph" aria-hidden="true">{{ entry.emoji }}</span>
           <p>{{ entry.text }}</p>
-          <time class="mono" [attr.datetime]="entry.at">{{ entry.at | ago: now() }}</time>
+          <time class="mono" [attr.datetime]="entry.at">{{ entry.at | ago: now() : t() }}</time>
         </li>
       } @empty {
-        <li class="quiet">Nothing has happened yet. Suspiciously quiet…</li>
+        <li class="quiet">{{ t().board.quiet }}</li>
       }
     </ol>
   `,
@@ -49,6 +50,7 @@ const TICK_MS = 15_000;
 })
 export class ChronicleFeed {
   protected readonly chronicle = inject(ChaosStream).chronicle;
+  protected readonly t = inject(I18n).t;
   /** Ticks so the relative times stay honest even when the room goes quiet */
   protected readonly now = signal(Date.now());
 

@@ -1,24 +1,24 @@
 import { Genre, Tier } from './models';
 
-/** Display data for the backend's Genre enum (keep in sync with Genre.java). */
-export const GENRES: Record<Genre, { emoji: string; label: string }> = {
-  CLASSIC: { emoji: '🎪', label: 'Classic' },
-  NOIR: { emoji: '🕵️', label: 'Noir' },
-  SPACE_OPERA: { emoji: '🚀', label: 'Space Opera' },
-  NATURE_DOC: { emoji: '🦁', label: 'Nature Doc' },
-  MEDIEVAL: { emoji: '🏰', label: 'Medieval' },
-  HEIST: { emoji: '💎', label: 'Heist' },
+/** Display data for the backend's Genre enum (keep in sync with Genre.java). Labels live in messages.ts. */
+export const GENRES: Record<Genre, { emoji: string }> = {
+  CLASSIC: { emoji: '🎪' },
+  NOIR: { emoji: '🕵️' },
+  SPACE_OPERA: { emoji: '🚀' },
+  NATURE_DOC: { emoji: '🦁' },
+  MEDIEVAL: { emoji: '🏰' },
+  HEIST: { emoji: '💎' },
 };
 
 export const GENRE_CODES = Object.keys(GENRES) as Genre[];
 
-/** Display data for the backend's Tier enum (keep in sync with Tier.java). */
-export const TIERS: Record<Tier, { emoji: string; label: string; threshold: number }> = {
-  BORING: { emoji: '😐', label: 'Boring', threshold: 0 },
-  CURIOUS: { emoji: '🤨', label: 'Curious', threshold: 6 },
-  SPICY: { emoji: '🌶️', label: 'Spicy', threshold: 15 },
-  LEGENDARY: { emoji: '👑', label: 'Legendary', threshold: 30 },
-  MYTHIC: { emoji: '🐉', label: 'Mythic', threshold: 50 },
+/** Display data for the backend's Tier enum (keep in sync with Tier.java). Labels live in messages.ts. */
+export const TIERS: Record<Tier, { emoji: string; threshold: number }> = {
+  BORING: { emoji: '😐', threshold: 0 },
+  CURIOUS: { emoji: '🤨', threshold: 6 },
+  SPICY: { emoji: '🌶️', threshold: 15 },
+  LEGENDARY: { emoji: '👑', threshold: 30 },
+  MYTHIC: { emoji: '🐉', threshold: 50 },
 };
 
 export const TIER_CODES = Object.keys(TIERS) as Tier[];

@@ -3,19 +3,10 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { GENRE_CODES, GENRES } from '../core/catalog';
 import { ChaosApi } from '../core/chaos-api';
 import { ChaosStream } from '../core/chaos-stream';
+import { I18n } from '../core/i18n';
 import { Genre, Problem } from '../core/models';
 import { PlayerIdentity } from '../core/player';
 import { Icon } from '../shared/icon';
-
-const SUGGESTIONS = [
-  'reading the terms and conditions',
-  'watching paint dry',
-  'alphabetizing the spice rack',
-  'calling customer support',
-  'waiting for the kettle to boil',
-  'updating my printer drivers',
-  'standing in line at the post office',
-];
 
 @Component({
   selector: 'app-submit-form',
@@ -23,15 +14,15 @@ const SUGGESTIONS = [
   template: `
     <form (submit)="submit($event)">
       <div class="head">
-        <label for="original" class="title">What's boring you right now?</label>
+        <label for="original" class="title">{{ t().submit.question }}</label>
         <span class="counter mono" [class.near]="original().length > 120">{{ original().length }}/140</span>
       </div>
       <div class="input-wrap">
         <input id="original" class="field" maxlength="140" autocomplete="off"
-          placeholder="e.g. {{ placeholder }}"
+          [placeholder]="t().submit.example(placeholder())"
           [value]="original()" (input)="original.set(value($event))" />
         <button type="button" class="btn btn-ghost icon-btn suggest" (click)="surprise()"
-          title="Suggest something boring" aria-label="Suggest something boring">
+          [title]="t().submit.suggest" [attr.aria-label]="t().submit.suggest">
           <app-icon name="dice" />
         </button>
       </div>
@@ -39,31 +30,31 @@ const SUGGESTIONS = [
       <fieldset class="genres" [disabled]="lockedGenre() !== null">
         <legend class="eyebrow">
           @if (lockedGenre(); as locked) {
-            <app-icon name="lock" /> Genre lock: everything is {{ genres[locked].label }} right now
+            <app-icon name="lock" /> {{ t().submit.genreLocked(t().genres[locked]) }}
           } @else {
-            Genre
+            {{ t().submit.genre }}
           }
         </legend>
         <button type="button" class="chip" [class.on]="effectiveGenre() === null"
           [attr.aria-pressed]="effectiveGenre() === null" (click)="genre.set(null)">
-          <app-icon name="sparkles" /> Surprise me
+          <app-icon name="sparkles" /> {{ t().submit.surprise }}
         </button>
         @for (code of genreCodes; track code) {
           <button type="button" class="chip" [class.on]="effectiveGenre() === code"
             [attr.aria-pressed]="effectiveGenre() === code" (click)="genre.set(code)">
-            <span aria-hidden="true">{{ genres[code].emoji }}</span> {{ genres[code].label }}
+            <span aria-hidden="true">{{ genres[code].emoji }}</span> {{ t().genres[code] }}
           </button>
         }
       </fieldset>
 
       <div class="row">
-        <input class="field name" aria-label="Your name" maxlength="40" placeholder="Your name (optional)"
+        <input class="field name" [attr.aria-label]="t().submit.name" maxlength="40" [placeholder]="t().submit.namePlaceholder"
           [value]="player.name()" (input)="player.name.set(value($event))" />
         <button type="submit" class="btn btn-primary submit" [disabled]="busy() || !original().trim()">
           @if (busy()) {
-            <span class="spinner" aria-hidden="true"></span> Twisting…
+            <span class="spinner" aria-hidden="true"></span> {{ t().submit.busy }}
           } @else {
-            Annihilate boredom <app-icon name="arrowRight" />
+            {{ t().submit.go }} <app-icon name="arrowRight" />
           }
         </button>
       </div>
@@ -78,6 +69,7 @@ export class SubmitForm {
   private readonly api = inject(ChaosApi);
   private readonly stream = inject(ChaosStream);
   protected readonly player = inject(PlayerIdentity);
+  protected readonly t = inject(I18n).t;
 
   protected readonly genres = GENRES;
   protected readonly genreCodes = GENRE_CODES;
@@ -87,7 +79,12 @@ export class SubmitForm {
   protected readonly genre = signal<Genre | null>(null);
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly placeholder = pick(SUGGESTIONS);
+  /** Which suggestion the placeholder shows; an index, so it survives a language switch */
+  private readonly suggestion = Math.floor(Math.random() * 7);
+  protected readonly placeholder = computed(() => {
+    const suggestions = this.t().submit.suggestions;
+    return suggestions[this.suggestion % suggestions.length];
+  });
 
   protected readonly lockedGenre = computed(() => this.stream.activeMutator()?.genre ?? null);
   protected readonly effectiveGenre = computed(() => this.lockedGenre() ?? this.genre());
@@ -101,7 +98,7 @@ export class SubmitForm {
   }
 
   protected surprise(): void {
-    this.original.set(pick(SUGGESTIONS));
+    this.original.set(pick(this.t().submit.suggestions));
   }
 
   protected submit(event: Event): void {
@@ -115,7 +112,7 @@ export class SubmitForm {
       error: (err: HttpErrorResponse) => {
         const problem = err.error as Problem | null;
         this.error.set(
-          problem?.errors?.['original'] ?? problem?.detail ?? 'The backend is snoozing. Is it running?',
+          problem?.errors?.['original'] ?? problem?.detail ?? this.t().submit.offline,
         );
         this.busy.set(false);
       },
