@@ -1,0 +1,56 @@
+# Only ${BACKEND_URL} is substituted at start-up; nginx's own $variables are left alone.
+server {
+    listen 8080;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+    server_tokens off;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    gzip on;
+    gzip_comp_level 6;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    # The live stream: never buffer, and let it stay open
+    location = /api/stream {
+        proxy_pass ${BACKEND_URL};
+        proxy_set_header Connection "";
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 1h;
+    }
+
+    location /api/ {
+        proxy_pass ${BACKEND_URL};
+    }
+
+    location /actuator/ {
+        proxy_pass ${BACKEND_URL};
+    }
+
+    location = /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    # Angular fingerprints its bundles, so they can be cached for a year
+    location ~* \.(?:js|css)$ {
+        expires 1y;
+        try_files $uri =404;
+    }
+
+    # SPA: unknown paths fall back to the app shell, which is never cached
+    location / {
+        expires -1;
+        try_files $uri $uri/ /index.html;
+    }
+}
