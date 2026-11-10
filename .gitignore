@@ -26,7 +26,6 @@ yarn-error.log
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-!.vscode/mcp.json
 .history/*
 
 # Miscellaneous
@@ -42,3 +41,23 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+### AI assistant files stay out of this repo ###
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+AGENTS.md
+GEMINI.md
+.gemini/
+.cursor/
+.cursorrules
+.windsurf/
+.windsurfrules
+.aider*
+.continue/
+.github/copilot-instructions.md
+.github/instructions/
+.mcp.json
+mcp.json
+llms.txt
+llms-full.txt
