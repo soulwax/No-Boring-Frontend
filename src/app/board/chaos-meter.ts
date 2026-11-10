@@ -24,8 +24,9 @@ const TICKS = Array.from({ length: 11 }, (_, i) => {
         </linearGradient>
       </defs>
       <path class="track" d="M20 100 A80 80 0 0 1 180 100" pathLength="100" />
-      <path class="fill" d="M20 100 A80 80 0 0 1 180 100" pathLength="100"
-        [style.stroke-dasharray]="level() + ' 100'" />
+      <!-- A gap longer than the path, so the dash never repeats as a dot at the far end -->
+      <path class="fill" d="M20 100 A80 80 0 0 1 180 100" pathLength="100" [class.empty]="level() === 0"
+        [style.stroke-dasharray]="level() + ' 200'" />
       @for (t of ticks; track $index) {
         <line class="tick" [class.major]="t.major" [attr.x1]="t.x1" [attr.y1]="t.y1" [attr.x2]="t.x2" [attr.y2]="t.y2" />
       }
@@ -44,7 +45,8 @@ const TICKS = Array.from({ length: 11 }, (_, i) => {
     svg { display: block; width: 100%; max-width: 260px; margin: 0 auto; overflow: visible; }
     path { fill: none; stroke-width: 10; stroke-linecap: round; }
     .track { stroke: var(--surface-3); }
-    .fill { stroke: url(#chaos-gradient); transition: stroke-dasharray 600ms var(--ease-spring); }
+    .fill { stroke: url(#chaos-gradient); transition: stroke-dasharray 600ms var(--ease-spring), opacity 300ms; }
+    .fill.empty { opacity: 0; }
     .tick { stroke: var(--border-strong); stroke-width: 1.5; stroke-linecap: round; }
     .tick.major { stroke: var(--text-3); }
     .needle {
