@@ -13,20 +13,20 @@ export const GENRES: Record<Genre, { emoji: string; label: string }> = {
 export const GENRE_CODES = Object.keys(GENRES) as Genre[];
 
 /** Display data for the backend's Tier enum (keep in sync with Tier.java). */
-export const TIERS: Record<Tier, { emoji: string; label: string }> = {
-  BORING: { emoji: '😐', label: 'Boring' },
-  CURIOUS: { emoji: '🤨', label: 'Curious' },
-  SPICY: { emoji: '🌶️', label: 'Spicy' },
-  LEGENDARY: { emoji: '👑', label: 'Legendary' },
-  MYTHIC: { emoji: '🐉', label: 'Mythic' },
+export const TIERS: Record<Tier, { emoji: string; label: string; threshold: number }> = {
+  BORING: { emoji: '😐', label: 'Boring', threshold: 0 },
+  CURIOUS: { emoji: '🤨', label: 'Curious', threshold: 6 },
+  SPICY: { emoji: '🌶️', label: 'Spicy', threshold: 15 },
+  LEGENDARY: { emoji: '👑', label: 'Legendary', threshold: 30 },
+  MYTHIC: { emoji: '🐉', label: 'Mythic', threshold: 50 },
 };
 
-const TIER_ORDER = Object.keys(TIERS) as Tier[];
+export const TIER_CODES = Object.keys(TIERS) as Tier[];
 
 export function tierRank(tier: Tier): number {
-  return TIER_ORDER.indexOf(tier);
+  return TIER_CODES.indexOf(tier);
 }
 
 export function nextTier(tier: Tier): Tier | null {
-  return TIER_ORDER[tierRank(tier) + 1] ?? null;
+  return TIER_CODES[tierRank(tier) + 1] ?? null;
 }

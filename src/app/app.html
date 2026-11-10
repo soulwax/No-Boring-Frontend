@@ -1,21 +1,53 @@
-<header>
-  <a routerLink="/" class="logo">
-    <span class="strike">Boring</span>
-    <span class="opposite">Opposite of Boring</span>
-  </a>
-  <nav>
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Board</a>
-    <a routerLink="/trophies" routerLinkActive="active">Trophies</a>
-    <a routerLink="/how-it-works" routerLinkActive="active">How it works</a>
-  </nav>
+<header class="topbar">
+  <div class="bar shell">
+    <a routerLink="/" class="logo" aria-label="Opposite of Boring, home">
+      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="9" />
+        <path d="M6 16h6l2.5-6 3.5 12 2.5-6H26" />
+      </svg>
+      <span class="wordmark">Opposite of <span class="serif">Boring</span></span>
+    </a>
+
+    <nav aria-label="Primary">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Board</a>
+      <a routerLink="/trophies" routerLinkActive="active">Trophies</a>
+      <a routerLink="/how-it-works" routerLinkActive="active">How it works</a>
+    </nav>
+
+    <div class="tools">
+      <span class="live" [class.offline]="!stream.connected()" role="status">
+        <span class="pulse" aria-hidden="true"></span>
+        @if (stream.connected()) {
+          <span><span class="mono">{{ stream.online() }}</span> online</span>
+        } @else {
+          <span>Reconnecting</span>
+        }
+      </span>
+      <button type="button" class="btn btn-ghost icon-btn" (click)="scheme.toggle()"
+        [attr.aria-label]="'Switch to ' + (scheme.theme() === 'dark' ? 'light' : 'dark') + ' theme'">
+        <app-icon [name]="scheme.theme() === 'dark' ? 'sun' : 'moon'" />
+      </button>
+      <a class="btn btn-ghost icon-btn" href="https://github.com/soulwax/No-Boring-Java-Angular"
+        target="_blank" rel="noopener" aria-label="Source code on GitHub">
+        <app-icon name="github" />
+      </a>
+    </div>
+  </div>
 </header>
 
-<main>
+<main class="shell">
   <app-mutator-banner />
   <router-outlet />
 </main>
 
-<footer>Angular 22 · Spring Boot 4 · zero boredom tolerated</footer>
+<footer class="shell footer">
+  <p>Opposite of Boring · a Spring Boot 4 and Angular 22 showcase, streamed live over SSE.</p>
+  <p class="links">
+    <a href="https://github.com/soulwax/No-Boring-Backend" target="_blank" rel="noopener">Backend</a>
+    <a href="https://github.com/soulwax/No-Boring-Frontend" target="_blank" rel="noopener">Frontend</a>
+    <a routerLink="/how-it-works">Architecture</a>
+  </p>
+</footer>
 
 <app-toasts />
 <app-chaos-wave />

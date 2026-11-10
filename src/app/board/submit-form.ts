@@ -5,6 +5,7 @@ import { ChaosApi } from '../core/chaos-api';
 import { ChaosStream } from '../core/chaos-stream';
 import { Genre, Problem } from '../core/models';
 import { PlayerIdentity } from '../core/player';
+import { Icon } from '../shared/icon';
 
 const SUGGESTIONS = [
   'reading the terms and conditions',
@@ -18,41 +19,52 @@ const SUGGESTIONS = [
 
 @Component({
   selector: 'app-submit-form',
+  imports: [Icon],
   template: `
     <form (submit)="submit($event)">
-      <label for="original">What's boring you right now?</label>
-      <div class="row">
-        <input id="original" maxlength="140" autocomplete="off"
+      <div class="head">
+        <label for="original" class="title">What's boring you right now?</label>
+        <span class="counter mono" [class.near]="original().length > 120">{{ original().length }}/140</span>
+      </div>
+      <div class="input-wrap">
+        <input id="original" class="field" maxlength="140" autocomplete="off"
           placeholder="e.g. {{ placeholder }}"
           [value]="original()" (input)="original.set(value($event))" />
-        <button type="button" class="ghost" (click)="surprise()" title="Suggest something boring">🥱</button>
+        <button type="button" class="btn btn-ghost icon-btn suggest" (click)="surprise()"
+          title="Suggest something boring" aria-label="Suggest something boring">
+          <app-icon name="dice" />
+        </button>
       </div>
 
       <fieldset class="genres" [disabled]="lockedGenre() !== null">
-        <legend>
+        <legend class="eyebrow">
           @if (lockedGenre(); as locked) {
-            🎬 Genre Lock: everything is {{ genres[locked].label }} right now
+            <app-icon name="lock" /> Genre lock: everything is {{ genres[locked].label }} right now
           } @else {
-            Pick a genre
+            Genre
           }
         </legend>
         <button type="button" class="chip" [class.on]="effectiveGenre() === null"
           [attr.aria-pressed]="effectiveGenre() === null" (click)="genre.set(null)">
-          🎰 Surprise me
+          <app-icon name="sparkles" /> Surprise me
         </button>
         @for (code of genreCodes; track code) {
           <button type="button" class="chip" [class.on]="effectiveGenre() === code"
             [attr.aria-pressed]="effectiveGenre() === code" (click)="genre.set(code)">
-            {{ genres[code].emoji }} {{ genres[code].label }}
+            <span aria-hidden="true">{{ genres[code].emoji }}</span> {{ genres[code].label }}
           </button>
         }
       </fieldset>
 
       <div class="row">
-        <input aria-label="Your name" maxlength="40" placeholder="Your name (optional)"
+        <input class="field name" aria-label="Your name" maxlength="40" placeholder="Your name (optional)"
           [value]="player.name()" (input)="player.name.set(value($event))" />
-        <button type="submit" [disabled]="busy() || !original().trim()">
-          {{ busy() ? 'Twisting…' : 'Annihilate boredom 💥' }}
+        <button type="submit" class="btn btn-primary submit" [disabled]="busy() || !original().trim()">
+          @if (busy()) {
+            <span class="spinner" aria-hidden="true"></span> Twisting…
+          } @else {
+            Annihilate boredom <app-icon name="arrowRight" />
+          }
         </button>
       </div>
       @if (error(); as message) {

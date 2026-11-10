@@ -1,17 +1,20 @@
-import { Component, inject } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { ChaosStream } from '../core/chaos-stream';
+import { AgoPipe } from '../shared/ago';
 
-/** The room's story so far, newest on top. */
+const TICK_MS = 15_000;
+
+/** The room's story so far, newest on top, drawn as a timeline. */
 @Component({
   selector: 'app-chronicle-feed',
+  imports: [AgoPipe],
   template: `
-    <h3>The Chronicle</h3>
     <ol aria-live="polite">
       @for (entry of chronicle(); track entry.at + entry.text) {
         <li>
-          <span class="emoji">{{ entry.emoji }}</span>
-          <span class="text">{{ entry.text }}</span>
-          <time [attr.datetime]="entry.at">{{ ago(entry.at) }}</time>
+          <span class="glyph" aria-hidden="true">{{ entry.emoji }}</span>
+          <p>{{ entry.text }}</p>
+          <time class="mono" [attr.datetime]="entry.at">{{ entry.at | ago: now() }}</time>
         </li>
       } @empty {
         <li class="quiet">Nothing has happened yet. Suspiciously quiet…</li>
@@ -19,32 +22,38 @@ import { ChaosStream } from '../core/chaos-stream';
     </ol>
   `,
   styles: `
-    h3 { margin: 0 0 .6rem; font: 800 1.1rem var(--display); }
-    ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; }
+    :host { display: block; max-height: 400px; overflow-y: auto; scrollbar-width: thin; }
+    ol { margin: 0; padding: 8px 0; list-style: none; }
     li {
-      display: grid; grid-template-columns: 1.6rem 1fr auto; gap: .4rem; align-items: baseline;
-      font-size: .85rem; line-height: 1.3;
-      animation: slide-in 400ms cubic-bezier(.34, 1.56, .64, 1);
+      position: relative;
+      display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; align-items: start;
+      padding: 8px 16px;
+      animation: enter 400ms var(--ease-out);
     }
-    li:nth-child(n + 6) { opacity: .6; }
-    .emoji { text-align: center; }
-    time { font-size: .7rem; opacity: .5; white-space: nowrap; }
-    .quiet { display: block; opacity: .6; font-style: italic; }
-    @keyframes slide-in { from { transform: translateX(-1rem); opacity: 0; } }
+    li:not(:last-child)::after {
+      content: ''; position: absolute; left: 29.5px; top: 38px; bottom: -6px;
+      width: 1px; background: var(--border);
+    }
+    .glyph {
+      display: grid; place-items: center; width: 28px; height: 28px;
+      border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); font-size: 14px;
+    }
+    li:first-child .glyph {
+      border-color: color-mix(in oklch, var(--accent) 40%, transparent); background: var(--accent-soft);
+    }
+    p { padding-top: 4px; font-size: 13px; line-height: 1.45; }
+    time { padding-top: 6px; color: var(--text-3); font-size: 11px; white-space: nowrap; }
+    .quiet { display: block; color: var(--text-3); font-size: 13px; }
+    @keyframes enter { from { opacity: 0; transform: translateY(-4px); } }
   `,
 })
 export class ChronicleFeed {
   protected readonly chronicle = inject(ChaosStream).chronicle;
+  /** Ticks so the relative times stay honest even when the room goes quiet */
+  protected readonly now = signal(Date.now());
 
-  /** Relative time, refreshed whenever the feed re-renders (which is often). */
-  protected ago(at: string): string {
-    const seconds = Math.max(0, Math.round((Date.now() - Date.parse(at)) / 1000));
-    if (seconds < 10) {
-      return 'just now';
-    }
-    if (seconds < 60) {
-      return `${seconds}s ago`;
-    }
-    return `${Math.floor(seconds / 60)}m ago`;
+  constructor() {
+    const timer = setInterval(() => this.now.set(Date.now()), TICK_MS);
+    inject(DestroyRef).onDestroy(() => clearInterval(timer));
   }
 }

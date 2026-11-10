@@ -19,8 +19,10 @@ interface Drop {
   selector: 'app-chaos-wave',
   template: `
     @if (wave(); as w) {
+      <div class="veil"></div>
       <div class="banner">
-        🌊 CHAOS WAVE 🌊
+        <span class="eyebrow">Chaos meter crossed 85</span>
+        <strong>Chaos <span class="serif">wave</span></strong>
         <small>unleashed by {{ w.by }}</small>
       </div>
       @for (drop of drops(); track drop.id) {
@@ -31,18 +33,26 @@ interface Drop {
   `,
   styles: `
     :host { position: fixed; inset: 0; pointer-events: none; z-index: 30; overflow: hidden; }
-    .banner {
-      position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
-      padding: 1rem 2rem; border-radius: 1.5rem;
-      background: var(--ink); color: var(--bg);
-      font: 800 clamp(1.6rem, 6vw, 3.5rem)/1.1 var(--display); text-align: center;
-      box-shadow: 10px 10px 0 var(--hot);
-      animation: slam 600ms cubic-bezier(.34, 1.56, .64, 1), fade 600ms ease-in 3.9s forwards;
-      small { display: block; font-size: 1rem; font-weight: 600; opacity: .8; }
+    .veil {
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 50% 42%, var(--accent-soft), transparent 60%);
+      animation: fade 600ms ease-in 3.9s forwards;
     }
+    .banner {
+      position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%);
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      padding: 24px 40px 22px; border-radius: 20px;
+      border: 1px solid var(--border); background: color-mix(in oklch, var(--surface) 88%, transparent);
+      backdrop-filter: blur(16px); box-shadow: var(--shadow-lg); text-align: center;
+      animation: slam 650ms var(--ease-spring), fade 600ms ease-in 3.9s forwards;
+    }
+    .eyebrow { color: var(--accent); }
+    strong { font-size: clamp(36px, 7vw, 64px); line-height: 1; font-weight: 600; letter-spacing: -.04em; }
+    .serif { color: var(--accent); }
+    small { color: var(--text-2); font-size: 14px; }
     .drop { position: absolute; top: -3rem; animation: fall 2.6s ease-in forwards; }
     @keyframes fall { to { transform: translateY(110vh) rotate(540deg); } }
-    @keyframes slam { from { transform: translate(-50%, -50%) scale(3) rotate(-8deg); opacity: 0; } }
+    @keyframes slam { from { transform: translate(-50%, -50%) scale(1.6); opacity: 0; filter: blur(8px); } }
     @keyframes fade { to { opacity: 0; } }
   `,
 })

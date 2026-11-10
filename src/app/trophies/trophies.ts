@@ -5,54 +5,113 @@ import { filter } from 'rxjs';
 import { ChaosStream } from '../core/chaos-stream';
 import { Achievement } from '../core/models';
 import { PlayerIdentity } from '../core/player';
+import { Icon } from '../shared/icon';
 
 @Component({
   selector: 'app-trophies',
+  imports: [Icon],
   template: `
-    <h1>Your trophy shelf</h1>
-    @if (trophies.hasValue()) {
-      <p class="progress">
-        <strong>{{ unlockedCount() }} / {{ trophies.value().length }}</strong> unlocked
-        <span class="bar"><span [style.width.%]="percent()"></span></span>
+    <section class="page-head">
+      <p class="eyebrow">Achievements</p>
+      <h1 class="h1">Your trophy <span class="serif">shelf</span></h1>
+      <p class="lede">
+        Earned by what you do on the board. The backend derives them from domain events, so they unlock
+        the moment you earn them, with a toast in every tab.
       </p>
+    </section>
+
+    @if (trophies.hasValue()) {
+      <div class="summary card">
+        <div class="ring" [style.--p]="percent()" role="img" [attr.aria-label]="percent() + '% unlocked'">
+          <span class="mono">{{ percent() }}%</span>
+        </div>
+        <div>
+          <strong>{{ unlockedCount() }} of {{ trophies.value().length }} unlocked</strong>
+          <p>
+            @if (unlockedCount() === trophies.value().length) {
+              Every single one. The room salutes you.
+            } @else {
+              {{ trophies.value().length - unlockedCount() }} still locked. Hype, submit and re-roll to find them.
+            }
+          </p>
+        </div>
+      </div>
+
       <div class="grid">
-        @for (t of trophies.value(); track t.code) {
-          <article [class.unlocked]="t.unlocked">
-            <span class="emoji">{{ t.unlocked ? t.emoji : '🔒' }}</span>
-            <h3>{{ t.title }}</h3>
-            <p>{{ t.description }}</p>
+        @for (t of shelf(); track t.code) {
+          <article class="card trophy" [class.unlocked]="t.unlocked">
+            <span class="glyph" aria-hidden="true">
+              @if (t.unlocked) {
+                {{ t.emoji }}
+              } @else {
+                <app-icon name="lock" />
+              }
+            </span>
+            <div class="info">
+              <h3>{{ t.title }}</h3>
+              <p>{{ t.description }}</p>
+            </div>
+            @if (t.unlocked) {
+              <span class="badge done"><app-icon name="check" /> Unlocked</span>
+            }
           </article>
         }
       </div>
     } @else if (trophies.error()) {
-      <p>Couldn't reach the trophy room. Is the backend running?</p>
+      <div class="card problem">
+        <p>Couldn't reach the trophy room. The backend may still be waking up.</p>
+        <button type="button" class="btn" (click)="trophies.reload()"><app-icon name="refresh" /> Try again</button>
+      </div>
     } @else {
-      <p>Polishing trophies…</p>
+      <div class="grid">
+        @for (n of [1, 2, 3, 4, 5, 6]; track n) {
+          <div class="skeleton tile"></div>
+        }
+      </div>
     }
-    <p class="note">Progress is tied to this browser and resets when the server restarts. Chaos is fleeting.</p>
+
+    <p class="note">Progress belongs to this browser and resets when the server restarts. Chaos is fleeting.</p>
   `,
   styles: `
-    h1 { font: 800 clamp(1.8rem, 4vw, 2.8rem)/1.1 var(--display); margin: 0 0 1rem; }
-    .progress { display: flex; align-items: center; gap: .8rem; }
-    .bar { flex: 1; max-width: 20rem; height: 10px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
-    .bar span {
-      display: block; height: 100%; transition: width 600ms ease;
-      background: linear-gradient(90deg, var(--cool), var(--hot), var(--nuclear));
+    .summary { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; padding: 18px 20px; }
+    .summary strong { font-size: 16px; font-weight: 600; letter-spacing: -.01em; }
+    .summary p { color: var(--text-2); font-size: 14px; }
+    .ring {
+      display: grid; place-items: center; flex: none; width: 64px; height: 64px; border-radius: 50%;
+      background:
+        radial-gradient(closest-side, var(--surface) 78%, transparent 80%),
+        conic-gradient(var(--accent) calc(var(--p) * 1%), var(--surface-3) 0);
+      font-size: 13px; font-weight: 500;
     }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: 1rem; }
-    article {
-      padding: 1.1rem; border-radius: 1.1rem; background: var(--surface);
-      border: 2px dashed var(--border); opacity: .55; filter: grayscale(1);
-      transition: transform 200ms ease;
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+    .trophy {
+      position: relative; display: flex; gap: 14px; align-items: flex-start; padding: 16px;
+      transition: border-color .2s, box-shadow .2s, transform .2s var(--ease-out);
     }
-    article.unlocked {
-      opacity: 1; filter: none; border-style: solid; box-shadow: 5px 5px 0 var(--shadow);
-      &:hover { transform: rotate(-1.5deg) scale(1.03); }
+    .trophy:not(.unlocked) { background: var(--surface-2); box-shadow: none; }
+    .trophy:not(.unlocked) .info { opacity: .6; }
+    .trophy.unlocked:hover { transform: translateY(-2px); border-color: var(--border-strong); box-shadow: var(--shadow-md); }
+    .glyph {
+      display: grid; place-items: center; flex: none; width: 44px; height: 44px;
+      border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2);
+      color: var(--text-3); font-size: 22px;
     }
-    .emoji { font-size: 2.2rem; }
-    h3 { margin: .3rem 0; font-family: var(--display); }
-    p { margin: 0; }
-    .note { margin-top: 2rem; font-size: .8rem; opacity: .6; }
+    .unlocked .glyph {
+      border-color: color-mix(in oklch, var(--accent) 30%, transparent); background: var(--accent-soft);
+    }
+    .glyph app-icon { font-size: 18px; }
+    .info { min-width: 0; padding-right: 76px; }
+    .trophy:not(.unlocked) .info { padding-right: 0; }
+    h3 { font-size: 14.5px; font-weight: 600; letter-spacing: -.01em; }
+    .info p { margin-top: 3px; color: var(--text-2); font-size: 13px; }
+    .done {
+      position: absolute; top: 14px; right: 14px;
+      border-color: color-mix(in oklch, var(--success) 35%, transparent);
+      background: color-mix(in oklch, var(--success) 10%, transparent); color: var(--success);
+    }
+    .tile { height: 92px; }
+    .problem { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; color: var(--text-2); }
+    .note { margin-top: 28px; color: var(--text-3); font-size: 13px; }
   `,
 })
 export class Trophies {
@@ -60,8 +119,12 @@ export class Trophies {
   protected readonly unlockedCount = computed(
     () => this.trophies.value()?.filter((t) => t.unlocked).length ?? 0,
   );
-  protected readonly percent = computed(
-    () => (100 * this.unlockedCount()) / (this.trophies.value()?.length || 1),
+  protected readonly percent = computed(() =>
+    Math.round((100 * this.unlockedCount()) / (this.trophies.value()?.length || 1)),
+  );
+  /** Unlocked first, otherwise in the backend's order */
+  protected readonly shelf = computed(() =>
+    [...(this.trophies.value() ?? [])].sort((a, b) => Number(b.unlocked) - Number(a.unlocked)),
   );
 
   constructor() {

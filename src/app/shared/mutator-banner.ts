@@ -8,42 +8,53 @@ import { ChaosStream } from '../core/chaos-stream';
   template: `
     @if (mutator(); as m) {
       <div class="banner" role="status" [attr.data-code]="m.code">
-        <span class="emoji">{{ m.emoji }}</span>
+        <span class="glyph" aria-hidden="true">{{ m.emoji }}</span>
         <div class="text">
           <strong>{{ m.title }}</strong>
           <small>{{ m.description }}</small>
         </div>
+        <span class="eyebrow tag">Room mutator</span>
         <span class="clock" [attr.aria-label]="secondsLeft() + ' seconds left'">{{ secondsLeft() }}s</span>
         <span class="fuse" [style.animation-duration.ms]="totalMs()"></span>
       </div>
     }
   `,
   styles: `
-    :host { display: block; position: sticky; top: 0; z-index: 15; }
+    :host { display: block; position: sticky; top: calc(var(--topbar-h, 60px) + 12px); z-index: 15; }
     .banner {
+      --m: var(--accent);
       position: relative; overflow: hidden;
-      display: flex; align-items: center; gap: .8rem;
-      margin: 0 0 1.5rem; padding: .7rem 1rem;
-      border-radius: 1rem; border: 2px solid var(--border);
-      background: var(--ink); color: var(--bg);
-      box-shadow: 6px 6px 0 var(--hot);
-      animation: drop-in 450ms cubic-bezier(.34, 1.56, .64, 1);
+      display: flex; align-items: center; gap: 14px;
+      margin: 0 0 20px; padding: 12px 18px 12px 12px;
+      border: 1px solid color-mix(in oklch, var(--m) 35%, var(--border)); border-radius: var(--radius-lg);
+      background: color-mix(in oklch, var(--m) 7%, var(--surface));
+      box-shadow: var(--shadow-md);
+      animation: drop-in 400ms var(--ease-spring);
     }
-    .banner[data-code='FROZEN_TIME'] { box-shadow: 6px 6px 0 #6ad3ff; }
-    .banner[data-code='TWIST_TORNADO'] .emoji { animation: spin 1.2s linear infinite; }
-    .emoji { font-size: 1.8rem; }
-    .text { flex: 1; display: flex; flex-direction: column; }
-    strong { font-family: var(--display); font-size: 1.1rem; }
-    small { opacity: .75; }
-    .clock { font: 800 1.6rem/1 var(--display); font-variant-numeric: tabular-nums; }
+    .banner[data-code='FROZEN_TIME'] { --m: var(--t-curious); }
+    .banner[data-code='GENRE_LOCK'] { --m: var(--t-legendary); }
+    .banner[data-code='TWIST_TORNADO'] { --m: var(--t-mythic); }
+    .banner[data-code='TWIST_TORNADO'] .glyph { animation: spin 1.6s linear infinite; }
+    .glyph {
+      display: grid; place-items: center; flex: none; width: 38px; height: 38px;
+      border-radius: 10px; background: color-mix(in oklch, var(--m) 15%, transparent); font-size: 19px;
+    }
+    .text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    strong { font-size: 14.5px; font-weight: 600; letter-spacing: -.01em; }
+    small { color: var(--text-2); font-size: 13px; }
+    .tag { color: var(--m); }
+    .clock {
+      min-width: 3.2ch; color: var(--m); text-align: right;
+      font: 500 24px/1 var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -.03em;
+    }
     .fuse {
-      position: absolute; left: 0; bottom: 0; height: 4px; width: 100%;
-      background: linear-gradient(90deg, var(--cool), var(--hot), var(--nuclear));
-      transform-origin: left; animation: burn linear forwards;
+      position: absolute; left: 0; bottom: 0; width: 100%; height: 2px;
+      background: var(--m); transform-origin: left; animation: burn linear forwards;
     }
     @keyframes burn { to { transform: scaleX(0); } }
-    @keyframes drop-in { from { transform: scale(.94); opacity: 0; } }
+    @keyframes drop-in { from { transform: translateY(-6px) scale(.98); opacity: 0; } }
     @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 640px) { .tag { display: none; } }
   `,
 })
 export class MutatorBanner {

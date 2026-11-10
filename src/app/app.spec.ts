@@ -21,6 +21,8 @@ describe('App', () => {
             achievements$: new Subject(),
             waves$: new Subject(),
             activeMutator: signal(null),
+            connected: signal(true),
+            online: signal(2),
           },
         },
       ],

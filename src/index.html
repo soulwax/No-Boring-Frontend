@@ -3,11 +3,23 @@
 <head>
   <meta charset="utf-8">
   <title>Opposite of Boring</title>
-  <meta name="description" content="Submit something boring, watch it get twisted live, hype it before it fades.">
-  <meta name="theme-color" content="#ff4f8b">
+  <meta name="description" content="Submit something boring, watch it get twisted live, hype it before it fades. A Spring Boot 4 and Angular 22 showcase.">
+  <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#111216" media="(prefers-color-scheme: dark)">
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" href="favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&family=Instrument+Serif:ital@0;1&display=swap">
+  <script>
+    // Apply a remembered theme before first paint, so there is no flash of the wrong one
+    try {
+      var theme = localStorage.getItem('oob.theme');
+      if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+    } catch (e) {}
+  </script>
 </head>
 <body>
   <app-root></app-root>

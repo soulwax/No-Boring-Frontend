@@ -1,4 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
+import { TIER_CODES, tierRank, TIERS } from '../core/catalog';
 import { ChaosApi } from '../core/chaos-api';
 import { ChaosStream } from '../core/chaos-stream';
 import { Flip } from '../shared/flip';
@@ -18,7 +19,15 @@ export class Board {
   protected readonly stream = inject(ChaosStream);
   private readonly api = inject(ChaosApi);
 
+  protected readonly tierInfo = TIERS;
+  /** Every tier worth climbing to, for the legend */
+  protected readonly tiers = TIER_CODES.slice(1).map((code) => ({ code, ...TIERS[code] }));
+
   protected readonly mayhem = computed(() => (this.stream.meter()?.level ?? 0) >= 70);
+  protected readonly topTier = computed(() => {
+    const ranks = this.stream.ranked().map((t) => tierRank(t.peakTier));
+    return ranks.length ? TIER_CODES[Math.max(...ranks)] : null;
+  });
 
   protected hype(id: number): void {
     this.api.hype(id).subscribe();
