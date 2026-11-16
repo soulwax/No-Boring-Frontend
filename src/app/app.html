@@ -10,6 +10,7 @@
 
     <nav [attr.aria-label]="i18n.t().nav.label">
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">{{ i18n.t().nav.board }}</a>
+      <a routerLink="/quests" routerLinkActive="active">⚔️ Quests</a>
       <a routerLink="/trophies" routerLinkActive="active">{{ i18n.t().nav.trophies }}</a>
       <a routerLink="/how-it-works" routerLinkActive="active">{{ i18n.t().nav.howItWorks }}</a>
     </nav>
@@ -25,6 +26,11 @@
       </span>
       <app-account-menu />
       <app-lang-switch />
+      <button type="button" class="btn btn-ghost icon-btn" (click)="audio.toggleMute()"
+        [title]="audio.isMuted() ? 'Unmute procedural sound FX' : 'Mute sound FX'"
+        [attr.aria-label]="audio.isMuted() ? 'Unmute' : 'Mute'">
+        <span>{{ audio.isMuted() ? '🔇' : '🔊' }}</span>
+      </button>
       <button type="button" class="btn btn-ghost icon-btn" (click)="scheme.toggle()"
         [attr.aria-label]="i18n.t().theme(scheme.theme() === 'dark' ? 'light' : 'dark')">
         <app-icon [name]="scheme.theme() === 'dark' ? 'sun' : 'moon'" />

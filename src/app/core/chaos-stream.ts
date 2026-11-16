@@ -1,5 +1,6 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { Subject } from 'rxjs';
+import { AudioFxService } from './audio-fx';
 import {
   AchievementUnlocked,
   ChaosMeter,
@@ -20,6 +21,7 @@ const CHRONICLE_SIZE = 12;
  */
 @Injectable({ providedIn: 'root' })
 export class ChaosStream {
+  private readonly audio = inject(AudioFxService);
   private readonly things = signal<Thing[]>([]);
   private readonly achievementSubject = new Subject<AchievementUnlocked>();
   private readonly waveSubject = new Subject<ChaosWave>();
@@ -62,8 +64,14 @@ export class ChaosStream {
       this.chronicle.set(entries.slice(0, CHRONICLE_SIZE)),
     );
     on<ChronicleEntry>(source, 'activity', (entry) => this.record(entry));
-    on<AchievementUnlocked>(source, 'achievement', (a) => this.achievementSubject.next(a));
-    on<ChaosWave>(source, 'wave', (w) => this.waveSubject.next(w));
+    on<AchievementUnlocked>(source, 'achievement', (a) => {
+      this.audio.playTierUp();
+      this.achievementSubject.next(a);
+    });
+    on<ChaosWave>(source, 'wave', (w) => {
+      this.audio.playChaosWave();
+      this.waveSubject.next(w);
+    });
 
     return () => {
       source.close();

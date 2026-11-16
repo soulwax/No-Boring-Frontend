@@ -21,6 +21,21 @@ export interface Thing {
   nextTierAt: number | null;
   lore: string[];
   createdAt: string;
+  imageUrl?: string | null;
+  questSteps?: string[];
+  estimatedMinutes?: number;
+  slayedAt?: string | null;
+  slayedBy?: string | null;
+}
+
+/** Mirrors dev.oob.chaos.quest.QuestService.QuestOverview */
+export interface QuestOverview {
+  myActiveQuests: Thing[];
+  mySlayedQuests: Thing[];
+  recentHallOfFame: Thing[];
+  slayedCount: number;
+  slayerXp: number;
+  slayerLevel: number;
 }
 
 /** Mirrors dev.oob.chaos.board.ChaosMeter */

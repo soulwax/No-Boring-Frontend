@@ -248,3 +248,203 @@
   .hype { flex: 1; }
   .reroll { width: 36px; height: 36px; }
 }
+
+// Quest & Artwork Styles
+.slayed-badge {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+:host(.slayed) {
+  opacity: 0.88;
+  border-style: dashed;
+}
+
+.card-art {
+  position: relative;
+  margin: 10px 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  max-height: 180px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+
+  img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+
+  &:hover img {
+    transform: scale(1.04);
+  }
+
+  .art-badge {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    backdrop-filter: blur(4px);
+  }
+}
+
+.quest-section {
+  margin: 10px 0 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: color-mix(in oklch, var(--surface-2) 60%, transparent);
+  border: 1px solid var(--border);
+
+  .quest-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+
+    .quest-title {
+      font-weight: 600;
+      color: var(--text-2);
+    }
+
+    .btn-text-toggle {
+      background: none;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0;
+      text-decoration: underline;
+
+      &:hover {
+        color: var(--accent-hover);
+      }
+    }
+  }
+
+  .quest-step-list {
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    .quest-step-item {
+      font-size: 12px;
+      color: var(--text-2);
+
+      .step-check {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        cursor: pointer;
+
+        input[type='checkbox'] {
+          margin-top: 2px;
+          cursor: pointer;
+        }
+      }
+    }
+  }
+}
+
+.quest-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+
+  .slay-btn {
+    background: #10b981;
+    color: #fff;
+    font-weight: 600;
+    padding: 4px 12px;
+    font-size: 12px;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: transform 0.15s, background 0.15s;
+
+    &:hover:not(:disabled) {
+      background: #059669;
+      transform: scale(1.03);
+    }
+  }
+
+  .slayed-note {
+    font-size: 12px;
+    font-weight: 600;
+    color: #10b981;
+  }
+
+  .quest-bar-actions {
+    display: flex;
+    gap: 6px;
+
+    .btn-art {
+      font-size: 11px;
+      padding: 2px 8px;
+      height: 28px;
+    }
+  }
+}
+
+.lightbox-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(6px);
+  animation: fadeIn 0.2s ease;
+
+  .lightbox-modal {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    max-width: 600px;
+    width: 100%;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+
+    img {
+      width: 100%;
+      max-height: 440px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .lightbox-info {
+      padding: 16px;
+
+      h3 {
+        margin: 0 0 6px;
+        font-size: 18px;
+      }
+
+      p {
+        margin: 0 0 14px;
+        color: var(--text-2);
+        font-size: 13px;
+      }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

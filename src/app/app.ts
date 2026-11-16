@@ -1,5 +1,6 @@
 import { Component, computed, inject, resource } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { AudioFxService } from './core/audio-fx';
 import { ChaosStream } from './core/chaos-stream';
 import { ColorScheme } from './core/color-scheme';
 import { I18n } from './core/i18n';
@@ -28,6 +29,7 @@ import { Toasts } from './shared/toasts';
 })
 export class App {
   protected readonly stream = inject(ChaosStream);
+  protected readonly audio = inject(AudioFxService);
   protected readonly scheme = inject(ColorScheme);
   protected readonly i18n = inject(I18n);
 

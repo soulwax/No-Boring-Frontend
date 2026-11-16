@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { tap } from 'rxjs';
 import { ChaosStream } from './chaos-stream';
-import { Genre, Thing } from './models';
+import { Genre, QuestOverview, Thing } from './models';
 
 /**
  * REST mutations. Every response is also folded into the live store right away,
@@ -30,5 +30,25 @@ export class ChaosApi {
     return this.http
       .post<Thing>(`/api/things/${id}/reroll`, null)
       .pipe(tap((thing) => this.stream.upsert(thing)));
+  }
+
+  slay(id: number) {
+    return this.http
+      .post<Thing>(`/api/things/${id}/slay`, null)
+      .pipe(tap((thing) => this.stream.upsert(thing)));
+  }
+
+  visualize(id: number) {
+    return this.http
+      .post<Thing>(`/api/things/${id}/visualize`, null)
+      .pipe(tap((thing) => this.stream.upsert(thing)));
+  }
+
+  getQuests() {
+    return this.http.get<QuestOverview>('/api/quests');
+  }
+
+  downloadIcs(id: number) {
+    window.open(`/api/things/${id}/calendar.ics`, '_blank');
   }
 }

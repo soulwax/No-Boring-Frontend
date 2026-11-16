@@ -40,7 +40,7 @@ describe('App', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.logo')?.textContent).toContain('Opposite of Boring');
-    expect(compiled.querySelectorAll('nav a').length).toBe(3);
+    expect(compiled.querySelectorAll('nav a').length).toBe(4);
     expect(connect).toHaveBeenCalledOnce();
     expect(connect).toHaveBeenCalledWith('/api/stream?lang=de&ngsw-bypass=true');
   });

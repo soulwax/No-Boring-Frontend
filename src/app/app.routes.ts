@@ -10,6 +10,11 @@ export const routes: Routes = [
     title: 'trophies',
   },
   {
+    path: 'quests',
+    loadComponent: () => import('./quests/quests').then((m) => m.QuestsComponent),
+    title: 'quests',
+  },
+  {
     path: 'how-it-works',
     loadComponent: () => import('./how-it-works/how-it-works').then((m) => m.HowItWorks),
     title: 'howItWorks',

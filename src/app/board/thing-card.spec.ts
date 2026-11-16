@@ -1,3 +1,4 @@
+import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { I18n } from '../core/i18n';
 import { Thing } from '../core/models';
@@ -19,6 +20,12 @@ const legendary: Thing = {
 };
 
 describe('ThingCard', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient()],
+    });
+  });
+
   afterEach(() => sessionStorage.clear());
 
   it('shows genre, peak tier, lore and the distance to the next tier, in German by default', async () => {

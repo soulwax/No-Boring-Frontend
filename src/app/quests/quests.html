@@ -1,0 +1,121 @@
+<div class="quests-container">
+  <header class="quests-hero">
+    <div class="hero-content">
+      <span class="hero-badge">⚔️ THE CHORE SLAYER</span>
+      <h1>Turn Tedious Chores into Heroic Victories</h1>
+      <p class="hero-subtitle">
+        Break down mundane real-world tasks into bite-sized micro-steps, complete them, and conquer your day.
+      </p>
+    </div>
+
+    @if (overview(); as o) {
+      <div class="slayer-card">
+        <div class="slayer-header">
+          <span class="slayer-level">Rank {{ o.slayerLevel }} Slayer</span>
+          <span class="slayer-xp mono">{{ o.slayerXp }} XP</span>
+        </div>
+        <div class="xp-bar">
+          <div class="xp-progress" [style.width.%]="xpPercentage()"></div>
+        </div>
+        <div class="slayer-stats">
+          <span>🏆 {{ o.slayedCount }} Chores Conquered</span>
+          <span>⚡ +100 XP per Slay</span>
+        </div>
+      </div>
+    }
+  </header>
+
+  <div class="action-toolbar">
+    <button type="button" class="btn btn-secondary btn-sm" (click)="copyMarkdown()">
+      <app-icon name="check" />
+      {{ copied() ? '✓ Copied to Clipboard!' : 'Copy Markdown Checklist' }}
+    </button>
+    <button type="button" class="btn btn-ghost btn-sm" (click)="refresh()">
+      <app-icon name="shuffle" /> Refresh
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <p>Consulting the ancient quest backlog...</p>
+    </div>
+  } @else if (overview(); as o) {
+    <section class="quest-section">
+      <div class="section-header">
+        <h2>My Active Quests</h2>
+        <span class="badge">{{ o.myActiveQuests.length }} In Progress</span>
+      </div>
+
+      @if (o.myActiveQuests.length === 0) {
+        <div class="empty-quests">
+          <p>🎯 No active chores in your quest log right now!</p>
+          <p class="hint">Submit your real chores (like "clean the kitchen" or "renew passport") on the Board to track them here.</p>
+        </div>
+      } @else {
+        <div class="quest-grid">
+          @for (q of o.myActiveQuests; track q.id) {
+            <article class="quest-item-card">
+              <div class="quest-top">
+                <span class="time-tag">⏱️ {{ q.estimatedMinutes || 15 }}m</span>
+                <button type="button" class="btn-icon" (click)="downloadIcs(q.id)" title="Download .ics Calendar Invite">
+                  📅
+                </button>
+              </div>
+
+              <h3>{{ q.original }}</h3>
+              <p class="quest-twist">{{ q.twist }}</p>
+
+              @if (q.questSteps && q.questSteps.length > 0) {
+                <div class="steps-wrapper">
+                  <div class="steps-label">Action Plan:</div>
+                  <ul class="micro-steps">
+                    @for (step of q.questSteps; track $index) {
+                      <li>
+                        <label>
+                          <input type="checkbox" />
+                          <span>{{ step }}</span>
+                        </label>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+
+              <div class="quest-bottom">
+                <button type="button" class="btn btn-primary slay-action-btn" (click)="slay(q.id)">
+                  ⚔️ Slay Chore (+100 XP)
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="quest-section hall-of-fame">
+      <div class="section-header">
+        <h2>Hall of Conquered Chores</h2>
+        <span class="badge success">{{ o.recentHallOfFame.length }} Total Slayed</span>
+      </div>
+
+      @if (o.recentHallOfFame.length === 0) {
+        <p class="empty-hall">No chores have been slayed yet today. Be the first hero!</p>
+      } @else {
+        <div class="hall-list">
+          @for (s of o.recentHallOfFame; track s.id) {
+            <div class="hall-row">
+              <span class="victory-icon">🏆</span>
+              <div class="hall-info">
+                <strong>{{ s.original }}</strong>
+                <span class="hall-twist">{{ s.twist }}</span>
+                <span class="hall-meta">
+                  Slayed by <em>{{ s.slayedBy || s.author }}</em> • {{ (s.slayedAt || s.createdAt) | date:'short' }}
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  }
+</div>
